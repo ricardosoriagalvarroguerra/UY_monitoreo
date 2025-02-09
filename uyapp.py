@@ -80,6 +80,13 @@ def pagina_tablas():
         procurement_type_filter = st.sidebar.multiselect("Selecciona Procurement Type", procurement_type_values)
     else:
         procurement_type_filter = []
+    
+    # Filtro para 'awarded_firm_country_name'
+    if "awarded_firm_country_name" in data.columns:
+        awarded_firm_country_name_values = sorted(data["awarded_firm_country_name"].dropna().unique())
+        awarded_firm_country_name_filter = st.sidebar.multiselect("Selecciona Awarded Firm Country Name", awarded_firm_country_name_values)
+    else:
+        awarded_firm_country_name_filter = []
 
     # -----------------------------
     # Aplicar filtros al DataFrame para la pestaña Raw Data
@@ -97,6 +104,8 @@ def pagina_tablas():
         filtered_data = filtered_data[filtered_data["economic_sector_name"].isin(economic_sector_filter)]
     if procurement_type_filter and "procurement_type" in filtered_data.columns:
         filtered_data = filtered_data[filtered_data["procurement_type"].isin(procurement_type_filter)]
+    if awarded_firm_country_name_filter and "awarded_firm_country_name" in filtered_data.columns:
+        filtered_data = filtered_data[filtered_data["awarded_firm_country_name"].isin(awarded_firm_country_name_filter)]
 
     # -----------------------------
     # Crear pestañas: Raw Data y Agregada
