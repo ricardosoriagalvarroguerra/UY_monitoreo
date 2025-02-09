@@ -3,12 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # -----------------------------
-# Función para cargar la base de datos
+# Función para cargar y normalizar la base de datos
 # -----------------------------
 @st.cache_data  # Cachea la carga para mejorar el rendimiento
 def load_data():
     # Asegúrate de tener instalado pyarrow o fastparquet para leer archivos Parquet
-    return pd.read_parquet("uy_procurements.parquet")
+    df = pd.read_parquet("uy_procurements.parquet")
+    
+    # Normalización de la columna 'awarded_firm_country_name'
+    if "awarded_firm_country_name" in df.columns:
+        df["awarded_firm_country_name"] = df["awarded_firm_country_name"].astype(str).str.strip().str.title()
+    
+    return df
 
 # Carga de datos (se realizará una sola vez)
 data = load_data()
