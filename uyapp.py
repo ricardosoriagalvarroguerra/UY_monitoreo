@@ -16,7 +16,7 @@ def load_data():
     
     return df
 
-# Carga de datos (se realizará una sola vez)
+# Carga de datos (se realiza una sola vez)
 data = load_data()
 
 # -----------------------------
@@ -118,21 +118,118 @@ def pagina_tablas():
     # -----------------------------
     tabs = st.tabs(["Raw Data", "Agregada"])
     
+    # Pestaña Raw Data: Muestra la base de datos filtrada
     with tabs[0]:
         st.header("Raw Data")
         st.write("Datos en crudo de la base de datos con los filtros aplicados:")
-        st.dataframe(filtered_data)  # Muestra la tabla filtrada
+        st.dataframe(filtered_data)
     
+    # Pestaña Agregada: Múltiples tablas agregadas de manera ordenada y estética
     with tabs[1]:
         st.header("Agregada")
-        st.write("Datos agregados (ejemplo de conteo por tipo de contrato):")
-        # Ejemplo de agregación: contar contratos por 'contract_type'
+        st.write("Tablas agregadas y resúmenes:")
+
+        # 1. Resumen por Tipo de Contrato
+        st.subheader("1. Resumen por Tipo de Contrato")
         if "contract_type" in filtered_data.columns and "contract_id" in filtered_data.columns:
-            agregada = filtered_data.groupby("contract_type")["contract_id"].count().reset_index()
-            agregada.columns = ["contract_type", "count"]
-            st.dataframe(agregada)
+            df_tipo = filtered_data.groupby("contract_type")["contract_id"].count().reset_index()
+            df_tipo = df_tipo.rename(columns={"contract_id": "Cantidad"})
+            total = df_tipo["Cantidad"].sum()
+            df_tipo["Porcentaje (%)"] = (df_tipo["Cantidad"] / total * 100).round(2)
+            st.dataframe(df_tipo)
         else:
-            st.write("No se encontraron las columnas necesarias para realizar la agregación.")
+            st.write("No se encontraron las columnas necesarias para este resumen.")
+
+        # 2. Resumen por Estado
+        st.subheader("2. Resumen por Estado")
+        if "status" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_estado = filtered_data.groupby("status")["contract_id"].count().reset_index()
+            df_estado = df_estado.rename(columns={"contract_id": "Cantidad"})
+            st.dataframe(df_estado)
+        else:
+            st.write("No se encontraron las columnas necesarias para este resumen.")
+        
+        # 3. Distribución Geográfica
+        st.subheader("3. Distribución Geográfica")
+        # a) Por País de Operación
+        if "operation_country_name" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_op = filtered_data.groupby("operation_country_name")["contract_id"].count().reset_index()
+            df_op = df_op.rename(columns={"contract_id": "Cantidad"})
+            st.write("**Por País de Operación**")
+            st.dataframe(df_op)
+        else:
+            st.write("No se encontraron las columnas necesarias para País de Operación.")
+        # b) Por País de la Firma Adjudicataria
+        if "awarded_firm_country_name" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_aw = filtered_data.groupby("awarded_firm_country_name")["contract_id"].count().reset_index()
+            df_aw = df_aw.rename(columns={"contract_id": "Cantidad"})
+            st.write("**Por País de la Firma Adjudicataria**")
+            st.dataframe(df_aw)
+        else:
+            st.write("No se encontraron las columnas necesarias para País de la Firma Adjudicataria.")
+        
+        # 4. Tendencia Temporal de Contratos
+        st.subheader("4. Tendencia Temporal de Contratos")
+        if "contract_year" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_tend = filtered_data.groupby("contract_year")["contract_id"].count().reset_index()
+            df_tend = df_tend.rename(columns={"contract_id": "Cantidad"})
+            df_tend = df_tend.sort_values("contract_year")
+            st.dataframe(df_tend)
+        elif "signature_date" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            filtered_data["signature_year"] = pd.to_datetime(filtered_data["signature_date"], errors="coerce").dt.year
+            df_tend = filtered_data.groupby("signature_year")["contract_id"].count().reset_index()
+            df_tend = df_tend.rename(columns={"contract_id": "Cantidad"})
+            df_tend = df_tend.sort_values("signature_year")
+            st.dataframe(df_tend)
+        else:
+            st.write("No se encontraron las columnas necesarias para este análisis.")
+        
+        # 5. Operaciones por Tipo
+        st.subheader("5. Operaciones por Tipo")
+        if "operation_type_name" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_op_type = filtered_data.groupby("operation_type_name")["contract_id"].count().reset_index()
+            df_op_type = df_op_type.rename(columns={"contract_id": "Cantidad"})
+            st.dataframe(df_op_type)
+        else:
+            st.write("No se encontraron las columnas necesarias para este resumen.")
+        
+        # 6. Duración de Contratos
+        st.subheader("6. Duración de Contratos")
+        if "start_date" in filtered_data.columns and "stop_date" in filtered_data.columns:
+            # Convertir a datetime
+            filtered_data["start_date"] = pd.to_datetime(filtered_data["start_date"], errors="coerce")
+            filtered_data["stop_date"] = pd.to_datetime(filtered_data["stop_date"], errors="coerce")
+            # Calcular duración en días
+            filtered_data["duration_days"] = (filtered_data["stop_date"] - filtered_data["start_date"]).dt.days
+            # Agregar por contract_type
+            if "contract_type" in filtered_data.columns:
+                df_duration = filtered_data.groupby("contract_type")["duration_days"].agg(["min", "max", "mean"]).reset_index()
+                df_duration = df_duration.rename(columns={"min": "Mínimo (días)",
+                                                              "max": "Máximo (días)",
+                                                              "mean": "Promedio (días)"})
+                st.dataframe(df_duration)
+            else:
+                st.write("La columna 'contract_type' no se encuentra para agrupar la duración.")
+        else:
+            st.write("No se encontraron las columnas necesarias para calcular la duración de contratos.")
+        
+        # 7. Resumen por Sector Económico y Tipo de Adquisición
+        st.subheader("7. Resumen por Sector Económico y Tipo de Adquisición")
+        if "economic_sector_name" in filtered_data.columns and "procurement_type" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_sector = filtered_data.groupby(["economic_sector_name", "procurement_type"])["contract_id"].count().reset_index()
+            df_sector = df_sector.rename(columns={"contract_id": "Cantidad"})
+            st.dataframe(df_sector)
+        else:
+            st.write("No se encontraron las columnas necesarias para este resumen.")
+        
+        # 8. Tabla Combinada Multidimensional (Contract Type y Status)
+        st.subheader("8. Tabla Combinada Multidimensional (Contract Type y Status)")
+        if "contract_type" in filtered_data.columns and "status" in filtered_data.columns and "contract_id" in filtered_data.columns:
+            df_multi = filtered_data.groupby(["contract_type", "status"])["contract_id"].count().reset_index()
+            df_multi = df_multi.rename(columns={"contract_id": "Cantidad"})
+            st.dataframe(df_multi)
+        else:
+            st.write("No se encontraron las columnas necesarias para esta tabla combinada.")
 
 # -----------------------------
 # Página de Visualizaciones
@@ -144,10 +241,10 @@ def pagina_visualizaciones():
     # Ejemplo: Gráfico de barras del conteo de contratos por 'contract_type'
     if "contract_type" in data.columns and "contract_id" in data.columns:
         agregada = data.groupby("contract_type")["contract_id"].count().reset_index()
-        agregada.columns = ["contract_type", "count"]
+        agregada = agregada.rename(columns={"contract_id": "Cantidad"})
         
         fig, ax = plt.subplots()
-        ax.bar(agregada["contract_type"], agregada["count"], color="skyblue")
+        ax.bar(agregada["contract_type"], agregada["Cantidad"], color="skyblue")
         ax.set_xlabel("Tipo de contrato")
         ax.set_ylabel("Cantidad de contratos")
         ax.set_title("Cantidad de contratos por tipo")
