@@ -53,7 +53,7 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Crear el gráfico de barras: Suma de idb_amount por año
+    # Crear el gráfico de montos: Suma de idb_amount por año
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(df_bar, x="contract_year", y="idb_amount",
@@ -63,8 +63,7 @@ def pagina_uruguay_nacional():
     else:
         fig_bar = None
 
-    # Usar dos columnas: la izquierda contendrá los value boxes y la derecha el gráfico de barras.
-    # Se ajusta la proporción para darle más ancho al gráfico.
+    # Usar dos columnas: la izquierda contendrá los value boxes y la derecha los gráficos.
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
@@ -101,10 +100,31 @@ def pagina_uruguay_nacional():
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
+        # Gráfico combinado de frecuencia de contratos
+        if "contract_year" in data_nacional.columns:
+            # Total de contratos por año
+            df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
+            # Contratos ganados por Uruguay (según awarded_firm_country_name)
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
+                        .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
+            fig_freq = go.Figure()
+            fig_freq.add_trace(go.Bar(x=df_total["contract_year"], y=df_total["Total Contratos"],
+                                      name="Total Contratos", marker_color="#003049"))
+            fig_freq.add_trace(go.Scatter(x=df_local["contract_year"], y=df_local["Contratos Uruguay"],
+                                          name="Contratos Uruguay", mode="lines+markers",
+                                          line=dict(color="#669bbc")))
+            fig_freq.update_layout(title="Frecuencia de Contratos por Año",
+                                   xaxis_title="Año", yaxis_title="Número de Contratos",
+                                   height=200, margin=dict(l=10, r=10, t=30, b=10))
+            st.plotly_chart(fig_freq, use_container_width=True)
+        else:
+            st.write("No se encontró información para el gráfico de frecuencia.")
+        
+        # Gráfico de montos
         if fig_bar:
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
-            st.write("No se encontró la información necesaria para el gráfico de barras (contract_year o idb_amount faltantes).")
+            st.write("No se encontró la información necesaria para el gráfico de montos.")
 
 # Página Uruguay en el Mundo
 def pagina_uruguay_en_el_mundo():
