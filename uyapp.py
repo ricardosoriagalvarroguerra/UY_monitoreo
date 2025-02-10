@@ -142,14 +142,14 @@ def pagina_uruguay_nacional():
             df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
-            # Traza de barras (eje y primario)
+            # Traza de barras en el eje primario
             fig_freq.add_trace(go.Bar(
                 x=df_total["contract_year"],
                 y=df_total["Total Contratos"],
                 name="Total Contratos",
                 marker_color="#003049"
             ))
-            # Traza de líneas (asignada a un eje secundario, yaxis2)
+            # Traza de líneas asignada al eje secundario (yaxis2)
             fig_freq.add_trace(go.Scatter(
                 x=df_local["contract_year"],
                 y=df_local["Contratos Uruguay"],
@@ -158,7 +158,7 @@ def pagina_uruguay_nacional():
                 line=dict(color="#669bbc"),
                 yaxis="y2"
             ))
-            # Configuración de ejes duales (ambos en la izquierda, con la secundaria desplazada)
+            # Configuración de ejes duales: eje primario a la izquierda y eje secundario a la derecha
             fig_freq.update_layout(
                 title=dict(
                     text="Frecuencia de Contratos por Año",
@@ -183,8 +183,7 @@ def pagina_uruguay_nacional():
                 yaxis2=dict(
                     title="Contratos Uruguay",
                     overlaying="y",
-                    side="left",
-                    position=0.08  # Ajusta este valor para desplazar el eje secundario
+                    side="right"
                 )
             )
             st.plotly_chart(fig_freq, use_container_width=True)
@@ -197,7 +196,7 @@ def pagina_uruguay_nacional():
         else:
             st.write("No se encontró la información necesaria para el gráfico de montos.")
 
-# Página Uruguay en el Mundo (enfoque: contratos fuera de Uruguay en operación y empresa uruguaya ganadora)
+# Página Uruguay en el Mundo (enfoque: contratos fuera de Uruguay y empresa uruguaya ganadora)
 def pagina_uruguay_en_el_mundo():
     st.title("Uruguay en el Mundo")
     
@@ -215,7 +214,7 @@ def pagina_uruguay_en_el_mundo():
         data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & 
                                     (data_mundial["contract_year"] <= year_range[1])]
     
-    # Filtros adicionales (con opción única, por defecto "Todos")
+    # Filtros adicionales (contrato, tipo de operación y sector económico)
     if "contract_type" in data_mundial.columns:
         contract_types = sorted(data_mundial["contract_type"].dropna().unique())
         selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
@@ -234,6 +233,20 @@ def pagina_uruguay_en_el_mundo():
         if selected_sector != "Todos":
             data_mundial = data_mundial[data_mundial["economic_sector_name"] == selected_sector]
     
+    # NUEVO FILTRO: País de Operación
+    if "operation_country_name" in data_mundial.columns:
+        # Obtenemos los países únicos (ya sin Uruguay)
+        unique_countries = sorted(data_mundial["operation_country_name"].dropna().unique())
+        # Se agrega la opción "Mercosur"
+        op_country_options = ["Todos", "Mercosur"] + unique_countries
+        selected_op_country = st.sidebar.selectbox("País de Operación", op_country_options)
+        if selected_op_country != "Todos":
+            if selected_op_country == "Mercosur":
+                mercosur_countries = ["Argentina", "Bolivia", "Brazil", "Paraguay"]
+                data_mundial = data_mundial[data_mundial["operation_country_name"].isin(mercosur_countries)]
+            else:
+                data_mundial = data_mundial[data_mundial["operation_country_name"] == selected_op_country]
+    
     st.write("Mostrando contratos en otros países, donde se evalúa la participación de empresas uruguayas.")
     
     # Cálculo de métricas:
@@ -242,7 +255,7 @@ def pagina_uruguay_en_el_mundo():
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_uruguayan = (uruguayan_contracts / total_mundial * 100) if total_mundial > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año (filtrando contratos fuera de Uruguay)
+    # Gráfico de montos: Suma de idb_amount por año (contratos fuera de Uruguay)
     if "contract_year" in data_mundial.columns and "idb_amount" in data_mundial.columns:
         df_bar = data_mundial.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -327,7 +340,7 @@ def pagina_uruguay_en_el_mundo():
                 line=dict(color="#669bbc"),
                 yaxis="y2"
             ))
-            # Configuración de ejes duales (ambos en la izquierda, con el secundario desplazado)
+            # Configuración de ejes duales: eje primario a la izquierda y eje secundario a la derecha
             fig_freq.update_layout(
                 title=dict(
                     text="Frecuencia de Contratos por Año",
@@ -352,8 +365,7 @@ def pagina_uruguay_en_el_mundo():
                 yaxis2=dict(
                     title="Contratos Uruguay",
                     overlaying="y",
-                    side="left",
-                    position=0.08  # Ajusta este valor para desplazar el eje secundario
+                    side="right"
                 )
             )
             st.plotly_chart(fig_freq, use_container_width=True)
