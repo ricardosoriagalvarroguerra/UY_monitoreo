@@ -37,12 +37,14 @@ def pagina_uruguay_nacional():
     if "operation_country_name" in data_nacional.columns:
         data_nacional = data_nacional[data_nacional["operation_country_name"] == "Uruguay"]
     
-    # Filtro de tiempo por año de contrato (si la columna existe)
+    # Filtro de tiempo por año de contrato
     if "contract_year" in data_nacional.columns:
         min_year = int(data_nacional["contract_year"].min())
         max_year = int(data_nacional["contract_year"].max())
-        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & (data_nacional["contract_year"] <= year_range[1])]
+        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
+                                       value=(min_year, max_year), step=1)
+        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) &
+                                      (data_nacional["contract_year"] <= year_range[1])]
     
     st.write("Mostrando contratos en Uruguay (Operación Nacional).")
     
@@ -51,22 +53,22 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Mostrar los Value Boxes en dos columnas
+    # Mostrar los Value Boxes en dos columnas (más pequeños)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
-        <div style="background-color: #0353a4; padding: 20px; border-radius: 10px; text-align: center;">
-            <h3 style="color: black; margin: 0;">Contratos en Uruguay</h3>
-            <h1 style="color: black; margin: 0;">{total_nacional}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+            <div style="background-color: #8ecae6; padding: 10px; border-radius: 8px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 16px;">Contratos</h3>
+                <h1 style="color: white; margin: 0; font-size: 24px;">{total_nacional}</h1>
+            </div>
+            """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div style="background-color: #0353a4; padding: 20px; border-radius: 10px; text-align: center;">
-            <h3 style="color: black; margin: 0;">% Contratos Locales</h3>
-            <h1 style="color: black; margin: 0;">{percentage_local:.1f}%</h1>
-        </div>
-        """, unsafe_allow_html=True)
+            <div style="background-color: #8ecae6; padding: 10px; border-radius: 8px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 16px;">% Contratos Locales Ganados</h3>
+                <h1 style="color: white; margin: 0; font-size: 24px;">{percentage_local:.1f}%</h1>
+            </div>
+            """, unsafe_allow_html=True)
     
     # Gráfico de barras horizontal: Top 15 de awarded_firm_country_name
     if "awarded_firm_country_name" in data_nacional.columns:
@@ -103,8 +105,10 @@ def pagina_uruguay_en_el_mundo():
     if "contract_year" in data_mundial.columns:
         min_year = int(data_mundial["contract_year"].min())
         max_year = int(data_mundial["contract_year"].max())
-        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
-        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & (data_mundial["contract_year"] <= year_range[1])]
+        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
+                                       value=(min_year, max_year), step=1)
+        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) &
+                                    (data_mundial["contract_year"] <= year_range[1])]
     st.write("Mostrando contratos donde empresas uruguayas operan en el exterior.")
     
     # Para cada Operation Type, generar subgráficos de barras horizontales (Top 5 + Otros)
