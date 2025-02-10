@@ -56,9 +56,17 @@ def pagina_uruguay_nacional():
     # Crear el gráfico de montos: Suma de idb_amount por año
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
-        fig_bar = px.bar(df_bar, x="contract_year", y="idb_amount",
-                         labels={"contract_year": "Año", "idb_amount": "Monto IDB"})
-        fig_bar.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
+        fig_bar = px.bar(
+            df_bar,
+            x="contract_year",
+            y="idb_amount",
+            labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
+        )
+        fig_bar.update_layout(
+            height=250,  # Altura reducida
+            margin=dict(l=10, r=10, t=10, b=10),
+            xaxis=dict(showticklabels=False)  # Se ocultan las etiquetas del eje horizontal
+        )
     else:
         fig_bar = None
 
@@ -84,11 +92,16 @@ def pagina_uruguay_nacional():
             </div>
             """, unsafe_allow_html=True)
         donut_data = pd.DataFrame({
-             "Categoría": ["Locales", "No Locales"],
-             "Valor": [percentage_local, 100 - percentage_local]
+            "Categoría": ["Locales", "No Locales"],
+            "Valor": [percentage_local, 100 - percentage_local]
         })
-        donut_fig = px.pie(donut_data, values="Valor", names="Categoría", hole=0.7,
-                           color_discrete_map={"Locales": "#669bbc", "No Locales": "#cccccc"})
+        donut_fig = px.pie(
+            donut_data,
+            values="Valor",
+            names="Categoría",
+            hole=0.7,
+            color_discrete_map={"Locales": "#669bbc", "No Locales": "#cccccc"}
+        )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
         donut_fig.update_layout(
             margin=dict(l=10, r=10, t=10, b=10),
@@ -108,12 +121,20 @@ def pagina_uruguay_nacional():
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             # Gráfico de barras para el total de contratos
-            fig_freq.add_trace(go.Bar(x=df_total["contract_year"], y=df_total["Total Contratos"],
-                                      name="Total Contratos", marker_color="#003049"))
+            fig_freq.add_trace(go.Bar(
+                x=df_total["contract_year"],
+                y=df_total["Total Contratos"],
+                name="Total Contratos",
+                marker_color="#003049"
+            ))
             # Gráfico de línea para los contratos ganados por Uruguay
-            fig_freq.add_trace(go.Scatter(x=df_local["contract_year"], y=df_local["Contratos Uruguay"],
-                                          name="Contratos Uruguay", mode="lines+markers",
-                                          line=dict(color="#669bbc")))
+            fig_freq.add_trace(go.Scatter(
+                x=df_local["contract_year"],
+                y=df_local["Contratos Uruguay"],
+                name="Contratos Uruguay",
+                mode="lines+markers",
+                line=dict(color="#669bbc")
+            ))
             fig_freq.update_layout(
                 title=dict(
                     text="Frecuencia de Contratos por Año",
@@ -128,9 +149,9 @@ def pagina_uruguay_nacional():
                     xanchor="center",
                     x=0.5
                 ),
-                xaxis_title="",  # Se elimina el texto del título del eje horizontal
+                xaxis=dict(showticklabels=False, title=""),  # Se ocultan las etiquetas del eje horizontal
                 yaxis_title="Número de Contratos",
-                height=250,  # Se aumenta la altura del gráfico
+                height=220,  # Altura reducida
                 margin=dict(l=10, r=10, t=60, b=10)
             )
             st.plotly_chart(fig_freq, use_container_width=True)
