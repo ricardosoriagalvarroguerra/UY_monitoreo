@@ -70,7 +70,7 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año con color "gray"
+    # Gráfico de montos: Suma de idb_amount por año con color "gray" y sin gridlines
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -80,7 +80,12 @@ def pagina_uruguay_nacional():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        fig_bar.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=10))
+        fig_bar.update_layout(
+            height=250,
+            margin=dict(l=10, r=10, t=10, b=10),
+            xaxis=dict(showgrid=False),
+            yaxis=dict(showgrid=False)
+        )
     else:
         fig_bar = None
 
@@ -145,8 +150,9 @@ def pagina_uruguay_nacional():
                 xaxis_title="",
                 height=220,
                 margin=dict(l=10, r=10, t=60, b=10),
-                yaxis=dict(title="Total Contratos", side="left"),
-                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right")
+                yaxis=dict(title="Total Contratos", side="left", showgrid=False),
+                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right", showgrid=False),
+                xaxis=dict(showgrid=False)
             )
             st.plotly_chart(fig_freq, use_container_width=True)
         else:
@@ -221,7 +227,9 @@ def pagina_uruguay_en_el_mundo():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        fig_bar.update_layout(width=600, height=250, margin=dict(l=10, r=10, t=10, b=10))
+        fig_bar.update_layout(width=600, height=250, margin=dict(l=10, r=10, t=10, b=10),
+                              xaxis=dict(showgrid=False),
+                              yaxis=dict(showgrid=False))
     else:
         fig_bar = None
 
@@ -243,7 +251,7 @@ def pagina_uruguay_en_el_mundo():
             "Categoría": ["Uruguay", "Otros"],
             "Valor": [percentage_uruguayan, 100 - percentage_uruguayan]
         })
-        # Aquí se cambia el color: #669bbc para Uruguay y #003049 para Otros
+        # Se asignan los colores solicitados: #669bbc para Uruguay y #003049 para Otros
         donut_fig = px.pie(
             donut_data,
             values="Valor",
@@ -252,13 +260,11 @@ def pagina_uruguay_en_el_mundo():
             color_discrete_map={"Uruguay": "#669bbc", "Otros": "#003049"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=200,
-            width=250,
-            annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
-                              font_size=28, font_color="white", showarrow=False)]
-        )
+        donut_fig.update_layout(margin=dict(l=10, r=10, t=10, b=10),
+                                height=200,
+                                width=250,
+                                annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
+                                                  font_size=28, font_color="white", showarrow=False)])
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
@@ -285,10 +291,11 @@ def pagina_uruguay_en_el_mundo():
                 title=dict(text="Frecuencia de Contratos por Año", x=0.5, pad=dict(b=40)),
                 legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="center", x=0.5),
                 xaxis_title="",
-                height=260,  # Se incrementa la altura del gráfico de frecuencia
+                height=260,  # Altura incrementada
                 margin=dict(l=10, r=10, t=60, b=10),
-                yaxis=dict(title="Total Contratos", side="left"),
-                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right")
+                yaxis=dict(title="Total Contratos", side="left", showgrid=False),
+                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right", showgrid=False),
+                xaxis=dict(showgrid=False)
             )
             st.plotly_chart(fig_freq, use_container_width=True)
         else:
