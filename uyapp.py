@@ -15,6 +15,10 @@ def load_data():
     if "awarded_firm_country_name" in df.columns:
         df["awarded_firm_country_name"] = df["awarded_firm_country_name"].astype(str).str.strip().str.title()
     
+    # Normalización de la columna 'operation_country_name'
+    if "operation_country_name" in df.columns:
+        df["operation_country_name"] = df["operation_country_name"].astype(str).str.strip().str.title()
+    
     return df
 
 # Carga de datos (se realiza una sola vez)
@@ -245,7 +249,7 @@ def pagina_visualizaciones():
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
-        # Agregar checkbox para elegir si se aplica la lógica de exclusión
+        # Checkbox para elegir si se aplica la lógica de exclusión
         aplicar_exclusion = st.checkbox(
             "Aplicar lógica de exclusión: Excluir registros donde awarded_firm_country_name sea igual a operation_country_name",
             value=True
