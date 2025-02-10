@@ -46,6 +46,22 @@ def pagina_uruguay_nacional():
         data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & 
                                       (data_nacional["contract_year"] <= year_range[1])]
     
+    # Filtros adicionales para contract_type, operation_type_name y economic_sector_name
+    if "contract_type" in data_nacional.columns:
+        contract_types = sorted(data_nacional["contract_type"].dropna().unique())
+        selected_contract_types = st.sidebar.multiselect("Tipo de Contrato", contract_types, default=contract_types)
+        data_nacional = data_nacional[data_nacional["contract_type"].isin(selected_contract_types)]
+    
+    if "operation_type_name" in data_nacional.columns:
+        op_types = sorted(data_nacional["operation_type_name"].dropna().unique())
+        selected_op_types = st.sidebar.multiselect("Tipo de Operación", op_types, default=op_types)
+        data_nacional = data_nacional[data_nacional["operation_type_name"].isin(selected_op_types)]
+    
+    if "economic_sector_name" in data_nacional.columns:
+        sectors = sorted(data_nacional["economic_sector_name"].dropna().unique())
+        selected_sectors = st.sidebar.multiselect("Sector Económico", sectors, default=sectors)
+        data_nacional = data_nacional[data_nacional["economic_sector_name"].isin(selected_sectors)]
+    
     st.write("Mostrando contratos en Uruguay (Operación Nacional).")
     
     # Calcular métricas para los Value Boxes
@@ -73,7 +89,7 @@ def pagina_uruguay_nacional():
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
-        # Value Box de Contratos con margen inferior agregado para separarlo del gráfico
+        # Value Box de Contratos con margen inferior para separarlo del gráfico
         st.markdown(f"""
             <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
                 <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
