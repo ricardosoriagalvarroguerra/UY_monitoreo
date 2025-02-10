@@ -207,8 +207,6 @@ def pagina_uruguay_en_el_mundo():
     st.write("Mostrando contratos en otros países, donde se evalúa la participación de empresas uruguayas.")
     
     total_mundial = data_mundial.shape[0]
-    # Agregar delimitadores de mil al value box usando f-string con :, 
-    # de modo que si total_mundial es 12345 se muestre como "12,345"
     total_mundial_str = f"{total_mundial:,}"
     
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
@@ -223,7 +221,6 @@ def pagina_uruguay_en_el_mundo():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        # Reducir el ancho del gráfico de montos
         fig_bar.update_layout(width=600, height=250, margin=dict(l=10, r=10, t=10, b=10))
     else:
         fig_bar = None
@@ -246,6 +243,7 @@ def pagina_uruguay_en_el_mundo():
             "Categoría": ["Uruguay", "Otros"],
             "Valor": [percentage_uruguayan, 100 - percentage_uruguayan]
         })
+        # Aquí se cambia el color: #669bbc para Uruguay y #003049 para Otros
         donut_fig = px.pie(
             donut_data,
             values="Valor",
