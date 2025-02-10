@@ -33,7 +33,7 @@ def pagina_tablas():
     st.write("Visualización de los datos de la Base de Datos.")
     
     st.sidebar.markdown("### Filtros para Raw Data")
-    # Filtros para variables
+    # Filtros para variables (si la columna existe)
     contract_type_filter = st.sidebar.multiselect("Selecciona Contract Type", sorted(data["contract_type"].dropna().unique())) if "contract_type" in data.columns else []
     status_filter = st.sidebar.multiselect("Selecciona Status", sorted(data["status"].dropna().unique())) if "status" in data.columns else []
     operation_type_name_filter = st.sidebar.multiselect("Selecciona Operation Type Name", sorted(data["operation_type_name"].dropna().unique())) if "operation_type_name" in data.columns else []
@@ -198,7 +198,7 @@ def pagina_visualizaciones():
     
     with tabs[1]:
         st.header("Tipo de Operación")
-        st.write("Donut Chart en subgráficos por cada valor único de Operation Type, mostrando el % de AWD (Top 5, con 'Otros')")
+        st.write("Gráficos de Barras Horizontales en subgráficos por cada valor único de Operation Type, mostrando el % de AWD (Top 5, con 'Otros')")
         if "operation_type_name" in data_vis.columns:
             op_types = list(data_vis["operation_type_name"].dropna().unique())
             n_ops = len(op_types)
@@ -208,10 +208,12 @@ def pagina_visualizaciones():
                 cols = 2
                 rows = math.ceil(n_ops / cols)
                 subplot_titles = op_types
-                fig_sub = make_subplots(rows=rows, cols=cols, subplot_titles=subplot_titles, specs=[[{'type':'domain'}]*cols for _ in range(rows)])
-                # Paleta para los que no son Uruguay en los donuts (distinta a la de barras)
+                fig_sub = make_subplots(rows=rows, cols=cols, subplot_titles=subplot_titles)
+                
+                # Paleta para los que no son Uruguay en los gráficos de barras (distinta a la de barras global)
                 non_uruguay_palette = ["#F28E2B", "#4E79A7", "#59A14F", "#E15759", "#EDC948",
                                        "#B07AA1", "#76B7B2", "#FF9DA7", "#9C755F", "#BAB0AC"]
+                
                 for idx, op in enumerate(op_types):
                     r = idx // cols + 1
                     c = idx % cols + 1
@@ -221,7 +223,8 @@ def pagina_visualizaciones():
                     df_awd = df_op["awarded_firm_country_name"].value_counts().reset_index()
                     df_awd.columns = ["Pais", "Frecuencia"]
                     df_awd = df_awd.sort_values("Frecuencia", ascending=False)
-                    # Lógica para Top 5: Siempre incluir Uruguay si está presente
+                    
+                    # Lógica para Top 5: si "Uruguay" aparece, incluirlo siempre y tomar 4 de los demás; de lo contrario, tomar 5
                     if "Uruguay" in df_awd["Pais"].values:
                         row_uruguay = df_awd[df_awd["Pais"] == "Uruguay"]
                         df_others = df_awd[df_awd["Pais"] != "Uruguay"]
@@ -229,7 +232,7 @@ def pagina_visualizaciones():
                         selected = pd.concat([row_uruguay, top_others])
                     else:
                         selected = df_awd.head(5)
-                    # Agrupar el resto en "Otros"
+                    
                     selected_countries = set(selected["Pais"])
                     remaining = df_awd[~df_awd["Pais"].isin(selected_countries)]
                     if not remaining.empty:
@@ -238,24 +241,31 @@ def pagina_visualizaciones():
                         final_df = pd.concat([selected, df_otros], ignore_index=True)
                     else:
                         final_df = selected.copy()
+                    
                     total_final = final_df["Frecuencia"].sum()
                     final_df["Porcentaje"] = (final_df["Frecuencia"] / total_final * 100).round(2)
+                    
                     # Asignar colores: Uruguay siempre "#669bbc"; para los demás, usar la paleta non_uruguay_palette secuencialmente.
-                    donut_colors = []
+                    bar_colors = []
                     palette_index = 0
                     for pais in final_df["Pais"]:
                         if pais == "Uruguay":
-                            donut_colors.append("#669bbc")
+                            bar_colors.append("#669bbc")
                         else:
-                            donut_colors.append(non_uruguay_palette[palette_index % len(non_uruguay_palette)])
+                            bar_colors.append(non_uruguay_palette[palette_index % len(non_uruguay_palette)])
                             palette_index += 1
-                    trace = go.Pie(labels=final_df["Pais"],
-                                   values=final_df["Frecuencia"],
-                                   hole=0.4,
-                                   textinfo="label+percent",
-                                   marker=dict(colors=donut_colors),
-                                   showlegend=False)
+                    
+                    trace = go.Bar(
+                        x=final_df["Frecuencia"],
+                        y=final_df["Pais"],
+                        orientation="h",
+                        text=final_df["Frecuencia"],
+                        textposition="outside",
+                        marker_color=bar_colors
+                    )
                     fig_sub.add_trace(trace, row=r, col=c)
+                    # Actualizar eje y para invertir el orden (para que la barra de mayor frecuencia aparezca arriba)
+                    fig_sub.update_yaxes(autorange="reversed", row=r, col=c)
                 fig_sub.update_layout(title_text="Distribución de AWD por Operation Type (Top 5 + Otros)", height=400*rows)
                 st.plotly_chart(fig_sub, use_container_width=True)
         else:
