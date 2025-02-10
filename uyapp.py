@@ -245,9 +245,14 @@ def pagina_visualizaciones():
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
-        # Para calcular la frecuencia, primero se excluyen los registros donde
-        # awarded_firm_country_name y operation_country_name sean iguales.
-        if "operation_country_name" in data.columns:
+        # Agregar checkbox para elegir si se aplica la lógica de exclusión
+        aplicar_exclusion = st.checkbox(
+            "Aplicar lógica de exclusión: Excluir registros donde awarded_firm_country_name sea igual a operation_country_name",
+            value=True
+        )
+        
+        # Según la opción, filtrar o no la data
+        if aplicar_exclusion and "operation_country_name" in data.columns:
             data_filtrado = data[data["awarded_firm_country_name"] != data["operation_country_name"]]
         else:
             data_filtrado = data.copy()
@@ -277,7 +282,7 @@ def pagina_visualizaciones():
         # Actualizar colores de las barras
         fig.update_traces(marker_color=colors)
         
-        # Calcular una altura dinámica: 40 píxeles por cada barra, mínimo 600 píxeles
+        # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
         altura = max(600, len(df_top15) * 40)
         fig.update_layout(height=altura)
         
