@@ -128,9 +128,9 @@ def pagina_uruguay_nacional():
                     xanchor="center",
                     x=0.5
                 ),
-                xaxis_title="Año",
+                xaxis_title="",  # Se elimina el texto del título del eje horizontal
                 yaxis_title="Número de Contratos",
-                height=200,
+                height=250,  # Se aumenta la altura del gráfico
                 margin=dict(l=10, r=10, t=60, b=10)
             )
             st.plotly_chart(fig_freq, use_container_width=True)
