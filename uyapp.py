@@ -22,12 +22,12 @@ def pagina_principal():
     st.title("Página Principal")
     st.write("Bienvenido a la aplicación de **UY_PROCUREMENT**.")
     st.write("""
-    Esta aplicación permite explorar los contratos de acuerdo a su ámbito:
-    
-    - **Uruguay Nacional:** Contratos con operaciones en Uruguay.
-    - **Uruguay en el Mundo:** Contratos en los que empresas uruguayas operan en el exterior.
-    - **Tabla Pivot:** Tabla resumen por País de la Operación con indicadores clave.
-    """)
+Esta aplicación permite explorar los contratos de acuerdo a su ámbito:
+
+- **Uruguay Nacional:** Contratos con operaciones en Uruguay.
+- **Uruguay en el Mundo:** Contratos en los que empresas uruguayas operan en el exterior.
+- **Tabla Pivot:** Tabla resumen por País de la Operación con indicadores clave.
+""")
 
 # Página Uruguay Nacional
 def pagina_uruguay_nacional():
@@ -44,22 +44,20 @@ def pagina_uruguay_nacional():
         max_year = int(data_nacional["contract_year"].max())
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
                                        value=(min_year, max_year), step=1)
-        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & 
+        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) &
                                       (data_nacional["contract_year"] <= year_range[1])]
     
-    # Filtros adicionales
+    # Filtros adicionales: Tipo de Contrato, Tipo de Operación y Sector Económico
     if "contract_type" in data_nacional.columns:
         contract_types = sorted(data_nacional["contract_type"].dropna().unique())
         selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
         if selected_contract_type != "Todos":
             data_nacional = data_nacional[data_nacional["contract_type"] == selected_contract_type]
-    
     if "operation_type_name" in data_nacional.columns:
         op_types = sorted(data_nacional["operation_type_name"].dropna().unique())
         selected_op_type = st.sidebar.selectbox("Tipo de Operación", ["Todos"] + op_types)
         if selected_op_type != "Todos":
             data_nacional = data_nacional[data_nacional["operation_type_name"] == selected_op_type]
-    
     if "economic_sector_name" in data_nacional.columns:
         sectors = sorted(data_nacional["economic_sector_name"].dropna().unique())
         selected_sector = st.sidebar.selectbox("Sector Económico", ["Todos"] + sectors)
@@ -72,6 +70,7 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
+    # Gráfico de montos: Suma de idb_amount por año con color "gray"
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -86,22 +85,19 @@ def pagina_uruguay_nacional():
         fig_bar = None
 
     col_left, col_right = st.columns([0.3, 0.7])
-    
     with col_left:
         st.markdown(f"""
-            <div style="max-width: 150px; background-color: gray; padding: 5px;
-                        border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
-                <h1 style="color: white; font-size: 28px;">{total_nacional}</h1>
-            </div>
-            """, unsafe_allow_html=True)
+<div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+    <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
+    <h1 style="color: white; font-size: 28px;">{total_nacional}</h1>
+</div>
+""", unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
-        
         st.markdown(f"""
-            <div style="max-width: 200px;">
-                <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Locales Ganados</h3>
-            </div>
-            """, unsafe_allow_html=True)
+<div style="max-width: 200px;">
+    <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Locales Ganados</h3>
+</div>
+""", unsafe_allow_html=True)
         donut_data = pd.DataFrame({
             "Categoría": ["Locales", "No Locales"],
             "Valor": [percentage_local, 100 - percentage_local]
@@ -174,7 +170,7 @@ def pagina_uruguay_en_el_mundo():
         max_year = int(data_mundial["contract_year"].max())
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
                                        value=(min_year, max_year), step=1)
-        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & 
+        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) &
                                     (data_mundial["contract_year"] <= year_range[1])]
     
     if "contract_type" in data_mundial.columns:
@@ -182,13 +178,11 @@ def pagina_uruguay_en_el_mundo():
         selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
         if selected_contract_type != "Todos":
             data_mundial = data_mundial[data_mundial["contract_type"] == selected_contract_type]
-    
     if "operation_type_name" in data_mundial.columns:
         op_types = sorted(data_mundial["operation_type_name"].dropna().unique())
         selected_op_type = st.sidebar.selectbox("Tipo de Operación", ["Todos"] + op_types)
         if selected_op_type != "Todos":
             data_mundial = data_mundial[data_mundial["operation_type_name"] == selected_op_type]
-    
     if "economic_sector_name" in data_mundial.columns:
         sectors = sorted(data_mundial["economic_sector_name"].dropna().unique())
         selected_sector = st.sidebar.selectbox("Sector Económico", ["Todos"] + sectors)
@@ -231,22 +225,19 @@ def pagina_uruguay_en_el_mundo():
         fig_bar = None
 
     col_left, col_right = st.columns([0.3, 0.7])
-    
     with col_left:
         st.markdown(f"""
-            <div style="max-width: 150px; background-color: gray; padding: 5px;
-                        border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
-                <h1 style="color: white; font-size: 28px;">{total_mundial}</h1>
-            </div>
-            """, unsafe_allow_html=True)
+<div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+    <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
+    <h1 style="color: white; font-size: 28px;">{total_mundial}</h1>
+</div>
+""", unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
-        
         st.markdown(f"""
-            <div style="max-width: 200px;">
-                <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Empresa Uruguaya</h3>
-            </div>
-            """, unsafe_allow_html=True)
+<div style="max-width: 200px;">
+    <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Empresa Uruguaya</h3>
+</div>
+""", unsafe_allow_html=True)
         donut_data = pd.DataFrame({
             "Categoría": ["Uruguay", "Otros"],
             "Valor": [percentage_uruguayan, 100 - percentage_uruguayan]
@@ -259,9 +250,13 @@ def pagina_uruguay_en_el_mundo():
             color_discrete_map={"Uruguay": "#669bbc", "Otros": "#cccccc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=200, width=250,
-                                annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
-                                                  font_size=28, font_color="white", showarrow=False)])
+        donut_fig.update_layout(
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=200,
+            width=250,
+            annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
+                              font_size=28, font_color="white", showarrow=False)]
+        )
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
@@ -302,10 +297,9 @@ def pagina_uruguay_en_el_mundo():
         else:
             st.write("No se encontró la información necesaria para el gráfico de montos.")
 
-# Nueva Página: Tabla Pivot (Resumen por País de la Operación)
+# Página Tabla Pivot (Resumen por País de la Operación)
 def tabla_pivot():
     st.title("Tabla Pivot")
-    # Se agregan filtros en la barra lateral
     df = data.copy()
     if "contract_type" in df.columns:
         contract_types = sorted(df["contract_type"].dropna().unique())
@@ -377,14 +371,15 @@ def tabla_pivot():
         header=dict(
             values=header_values,
             fill_color="#444444",
-            font=dict(color="white", size=16),  # Texto de encabezado más grande
+            font=dict(color="white", size=16),
             align="center"
         ),
         cells=dict(
             values=cell_values,
             fill_color=fill_colors,
-            font=dict(color="white", size=14),  # Texto de celdas más grande
-            align="center"
+            font=dict(color="white", size=14),
+            align="center",
+            height=35
         )
     )])
     fig_table.update_layout(margin=dict(l=10, r=10, t=10, b=10),
