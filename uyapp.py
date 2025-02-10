@@ -58,7 +58,6 @@ def pagina_uruguay_nacional():
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(df_bar, x="contract_year", y="idb_amount",
                          labels={"contract_year": "Año", "idb_amount": "Monto IDB"})
-        # Se establece una altura aproximada para que el gráfico se alinee con los value boxes
         fig_bar.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
     else:
         fig_bar = None
@@ -100,22 +99,40 @@ def pagina_uruguay_nacional():
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
-        # Gráfico combinado de frecuencia de contratos
+        # Gráfico combinado de frecuencia de contratos (barra + línea)
         if "contract_year" in data_nacional.columns:
             # Total de contratos por año
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            # Contratos ganados por Uruguay (según awarded_firm_country_name)
+            # Contratos ganados por Uruguay (filtrando awarded_firm_country_name)
             df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
+            # Gráfico de barras para el total de contratos
             fig_freq.add_trace(go.Bar(x=df_total["contract_year"], y=df_total["Total Contratos"],
                                       name="Total Contratos", marker_color="#003049"))
+            # Gráfico de línea para los contratos ganados por Uruguay
             fig_freq.add_trace(go.Scatter(x=df_local["contract_year"], y=df_local["Contratos Uruguay"],
                                           name="Contratos Uruguay", mode="lines+markers",
                                           line=dict(color="#669bbc")))
-            fig_freq.update_layout(title="Frecuencia de Contratos por Año",
-                                   xaxis_title="Año", yaxis_title="Número de Contratos",
-                                   height=200, margin=dict(l=10, r=10, t=30, b=10))
+            fig_freq.update_layout(
+                title=dict(
+                    text="Frecuencia de Contratos por Año",
+                    x=0.5,
+                    xanchor="center",
+                    pad=dict(b=40)
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.0,
+                    xanchor="center",
+                    x=0.5
+                ),
+                xaxis_title="Año",
+                yaxis_title="Número de Contratos",
+                height=200,
+                margin=dict(l=10, r=10, t=60, b=10)
+            )
             st.plotly_chart(fig_freq, use_container_width=True)
         else:
             st.write("No se encontró información para el gráfico de frecuencia.")
