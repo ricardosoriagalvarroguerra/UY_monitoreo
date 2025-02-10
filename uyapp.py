@@ -118,13 +118,11 @@ def pagina_tablas():
     # -----------------------------
     tabs = st.tabs(["Raw Data", "Agregada"])
     
-    # Pestaña Raw Data: Muestra la base de datos filtrada
     with tabs[0]:
         st.header("Raw Data")
         st.write("Datos en crudo de la base de datos con los filtros aplicados:")
         st.dataframe(filtered_data)
     
-    # Pestaña Agregada: Múltiples tablas agregadas de manera ordenada y estética
     with tabs[1]:
         st.header("Agregada")
         st.write("Tablas agregadas y resúmenes:")
@@ -196,12 +194,9 @@ def pagina_tablas():
         # 6. Duración de Contratos
         st.subheader("6. Duración de Contratos")
         if "start_date" in filtered_data.columns and "stop_date" in filtered_data.columns:
-            # Convertir a datetime
             filtered_data["start_date"] = pd.to_datetime(filtered_data["start_date"], errors="coerce")
             filtered_data["stop_date"] = pd.to_datetime(filtered_data["stop_date"], errors="coerce")
-            # Calcular duración en días
             filtered_data["duration_days"] = (filtered_data["stop_date"] - filtered_data["start_date"]).dt.days
-            # Agregar por contract_type
             if "contract_type" in filtered_data.columns:
                 df_duration = filtered_data.groupby("contract_type")["duration_days"].agg(["min", "max", "mean"]).reset_index()
                 df_duration = df_duration.rename(columns={"min": "Mínimo (días)",
@@ -232,25 +227,31 @@ def pagina_tablas():
             st.write("No se encontraron las columnas necesarias para esta tabla combinada.")
 
 # -----------------------------
-# Página de Visualizaciones
+# Página de Visualizaciones con subpáginas
 # -----------------------------
 def pagina_visualizaciones():
     st.title("Visualizaciones")
-    st.write("Gráficos y análisis visual de la base de datos.")
+    tabs = st.tabs(["Descriptivo"])  # Se pueden agregar más pestañas según se requiera
     
-    # Ejemplo: Gráfico de barras del conteo de contratos por 'contract_type'
-    if "contract_type" in data.columns and "contract_id" in data.columns:
-        agregada = data.groupby("contract_type")["contract_id"].count().reset_index()
-        agregada = agregada.rename(columns={"contract_id": "Cantidad"})
+    with tabs[0]:
+        st.header("Descriptivo")
+        st.write("Frecuencia de Contratos Ganados por País")
         
-        fig, ax = plt.subplots()
-        ax.bar(agregada["contract_type"], agregada["Cantidad"], color="skyblue")
-        ax.set_xlabel("Tipo de contrato")
-        ax.set_ylabel("Cantidad de contratos")
-        ax.set_title("Cantidad de contratos por tipo")
+        # Agrupar y contar la frecuencia de países en awarded_firm_country_name
+        df_freq = data["awarded_firm_country_name"].value_counts().reset_index()
+        df_freq.columns = ["Pais", "Frecuencia"]
+        df_freq = df_freq.sort_values("Frecuencia", ascending=False)
+        
+        # Asignar colores: Uruguay con #669bbc, y los demás con #003049
+        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq["Pais"]]
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.bar(df_freq["Pais"], df_freq["Frecuencia"], color=colors)
+        ax.set_title("Frecuencia de Contratos Ganados por País")
+        ax.set_xlabel("País")
+        ax.set_ylabel("Frecuencia")
+        ax.tick_params(axis="x", rotation=45)
         st.pyplot(fig)
-    else:
-        st.write("No se encontraron las columnas necesarias para la visualización.")
 
 # -----------------------------
 # Función principal de la aplicación
