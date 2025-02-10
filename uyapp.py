@@ -47,7 +47,7 @@ def pagina_uruguay_nacional():
         data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & 
                                       (data_nacional["contract_year"] <= year_range[1])]
     
-    # Filtros adicionales (Tipo de Contrato, Tipo de Operación y Sector Económico)
+    # Filtros adicionales
     if "contract_type" in data_nacional.columns:
         contract_types = sorted(data_nacional["contract_type"].dropna().unique())
         selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
@@ -68,12 +68,12 @@ def pagina_uruguay_nacional():
     
     st.write("Mostrando contratos en Uruguay (Operación Nacional).")
     
-    # Cálculo de métricas para los Value Boxes
+    # Cálculo de métricas
     total_nacional = data_nacional.shape[0]
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año con color "gray"
+    # Gráfico de montos con color "gray"
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -83,14 +83,10 @@ def pagina_uruguay_nacional():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        fig_bar.update_layout(
-            height=250,
-            margin=dict(l=10, r=10, t=10, b=10)
-        )
+        fig_bar.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=10))
     else:
         fig_bar = None
 
-    # Distribución en dos columnas
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
@@ -120,19 +116,15 @@ def pagina_uruguay_nacional():
             color_discrete_map={"Locales": "#669bbc", "No Locales": "#cccccc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=200,
-            width=250,
-            annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5,
-                              font_size=28, font_color="white", showarrow=False)]
-        )
+        donut_fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=200, width=250,
+                                annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5,
+                                                  font_size=28, font_color="white", showarrow=False)])
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
         if "contract_year" in data_nacional.columns:
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"]\
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -232,10 +224,7 @@ def pagina_uruguay_en_el_mundo():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        fig_bar.update_layout(
-            height=250,
-            margin=dict(l=10, r=10, t=10, b=10)
-        )
+        fig_bar.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=10))
     else:
         fig_bar = None
 
@@ -268,19 +257,15 @@ def pagina_uruguay_en_el_mundo():
             color_discrete_map={"Uruguay": "#669bbc", "Otros": "#cccccc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=200,
-            width=250,
-            annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
-                              font_size=28, font_color="white", showarrow=False)]
-        )
+        donut_fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=200, width=250,
+                                annotations=[dict(text=f"{percentage_uruguayan:.1f}%", x=0.5, y=0.5,
+                                                  font_size=28, font_color="white", showarrow=False)])
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
         if "contract_year" in data_mundial.columns:
             df_total = data_mundial.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
+            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]\
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -335,7 +320,7 @@ def tabla_pivot():
             return
     
     df = data.copy()
-    # Agrupar por País de la Operación
+    # Agrupar por País de la Operación y calcular los indicadores
     summary = df.groupby("operation_country_name").apply(lambda g: pd.Series({
          "Total Contratos": g.shape[0],
          "Contratos Ganados por Empresas Uruguayas": (g["awarded_firm_country_name"] == "Uruguay").sum(),
@@ -343,19 +328,50 @@ def tabla_pivot():
          "Monto a Uruguay (USD)": g.loc[g["awarded_firm_country_name"] == "Uruguay", "idb_amount"].sum()
     })).reset_index()
     
-    # Calcular porcentajes y formatear
-    summary["% Contratos a Empresas UY"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2).astype(str) + "%"
-    summary["% Monto a Uruguay"] = (summary["Monto a Uruguay (USD)"] / summary["Monto Total Adjudicado (USD)"] * 100).round(2).astype(str) + "%"
+    # Calcular porcentajes (sin formatear)
+    summary["% Contratos a Empresas UY"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2)
+    summary["% Monto a Uruguay"] = (summary["Monto a Uruguay (USD)"] / summary["Monto Total Adjudicado (USD)"] * 100).round(2)
     
+    # Calcular totales
+    total_contratos = summary["Total Contratos"].sum()
+    total_contratos_uy = summary["Contratos Ganados por Empresas Uruguayas"].sum()
+    total_monto_total = summary["Monto Total Adjudicado (USD)"].sum()
+    total_monto_uy = summary["Monto a Uruguay (USD)"].sum()
+    pct_contratos = round((total_contratos_uy / total_contratos * 100),2) if total_contratos > 0 else 0
+    pct_monto = round((total_monto_uy / total_monto_total * 100),2) if total_monto_total > 0 else 0
+    
+    # Formatear montos
     summary["Monto Total Adjudicado (USD)"] = summary["Monto Total Adjudicado (USD)"].apply(lambda x: f"${x:,.0f}")
     summary["Monto a Uruguay (USD)"] = summary["Monto a Uruguay (USD)"].apply(lambda x: f"${x:,.0f}")
+    # Formatear porcentajes
+    summary["% Contratos a Empresas UY"] = summary["% Contratos a Empresas UY"].astype(str) + "%"
+    summary["% Monto a Uruguay"] = summary["% Monto a Uruguay"].astype(str) + "%"
     
+    # Renombrar columna y reordenar
     summary = summary.rename(columns={"operation_country_name": "País de la Operación"})
     summary = summary[["País de la Operación", "Total Contratos", "Contratos Ganados por Empresas Uruguayas",
                        "% Contratos a Empresas UY", "Monto Total Adjudicado (USD)", "Monto a Uruguay (USD)", "% Monto a Uruguay"]]
     
+    # Agregar fila de totales
+    total_row = pd.DataFrame({
+         "País de la Operación": ["Total"],
+         "Total Contratos": [total_contratos],
+         "Contratos Ganados por Empresas Uruguayas": [total_contratos_uy],
+         "% Contratos a Empresas UY": [f"{pct_contratos}%"],
+         "Monto Total Adjudicado (USD)": [f"${total_monto_total:,.0f}"],
+         "Monto a Uruguay (USD)": [f"${total_monto_uy:,.0f}"],
+         "% Monto a Uruguay": [f"{pct_monto}%"]
+    })
+    summary = pd.concat([summary, total_row], ignore_index=True)
+    
+    # Preparar valores para la tabla
     header_values = list(summary.columns)
     cell_values = [summary[col].tolist() for col in summary.columns]
+    
+    # Alternating row colors
+    n_rows = len(summary)
+    row_colors = ['#222222' if i % 2 == 0 else '#333333' for i in range(n_rows)]
+    fill_colors = [row_colors] * len(header_values)
     
     fig_table = go.Figure(data=[go.Table(
         header=dict(
@@ -366,16 +382,14 @@ def tabla_pivot():
         ),
         cells=dict(
             values=cell_values,
-            fill_color="#222222",
+            fill_color=fill_colors,
             font=dict(color="white", size=11),
             align="center"
         )
     )])
-    fig_table.update_layout(
-        margin=dict(l=10, r=10, t=10, b=10),
-        paper_bgcolor="#000000",
-        plot_bgcolor="#000000"
-    )
+    fig_table.update_layout(margin=dict(l=10, r=10, t=10, b=10),
+                            paper_bgcolor="#000000",
+                            plot_bgcolor="#000000")
     st.plotly_chart(fig_table, use_container_width=True)
 
 # Función principal de navegación
