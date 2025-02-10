@@ -17,16 +17,10 @@ def load_data():
 
 data = load_data()
 
-# Página Principal: Introducción y Value Box
+# Página Principal
 def pagina_principal():
     st.title("Página Principal")
     st.write("Bienvenido a la aplicación de **UY_PROCUREMENT**.")
-    
-    # Value Box: Contratos con operación en Uruguay
-    if "operation_country_name" in data.columns:
-        count_uruguay = data[data["operation_country_name"] == "Uruguay"].shape[0]
-        st.metric(label="Contratos en Uruguay", value=count_uruguay)
-    
     st.write("""
     Esta aplicación permite explorar los contratos de acuerdo a su ámbito:
     
@@ -37,6 +31,14 @@ def pagina_principal():
 # Página Uruguay Nacional
 def pagina_uruguay_nacional():
     st.title("Uruguay Nacional")
+    # Value Box: Contar contratos en Uruguay (según operation_country_name)
+    if "operation_country_name" in data.columns:
+        count_nacional = data[data["operation_country_name"] == "Uruguay"].shape[0]
+        # Usamos 3 columnas para centrar el value box
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.metric(label="Contratos Nacionales", value=count_nacional)
+    
     data_nacional = data.copy()
     if "operation_country_name" in data_nacional.columns:
         data_nacional = data_nacional[data_nacional["operation_country_name"] == "Uruguay"]
@@ -72,18 +74,19 @@ def pagina_uruguay_nacional():
 def pagina_uruguay_en_el_mundo():
     st.title("Uruguay en el Mundo")
     data_mundial = data.copy()
-    # Filtrar contratos: empresas uruguayas que operan en el exterior
+    # Filtrar: empresas uruguayas que operan en el exterior
     if "awarded_firm_country_name" in data_mundial.columns:
         data_mundial = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]
     if "operation_country_name" in data_mundial.columns:
         data_mundial = data_mundial[data_mundial["operation_country_name"] != "Uruguay"]
+    # Filtro de tiempo por año de contrato
     if "contract_year" in data_mundial.columns:
         min_year = int(data_mundial["contract_year"].min())
         max_year = int(data_mundial["contract_year"].max())
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
         data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & (data_mundial["contract_year"] <= year_range[1])]
     st.write("Mostrando contratos donde empresas uruguayas operan en el exterior.")
-    # Por cada Operation Type, crear subgráficos de barras horizontales (subplots) mostrando el Top 5 de países de operación.
+    # Para cada Operation Type, se muestran subgráficos de barras horizontales (Top 5 + Otros)
     if "operation_type_name" in data_mundial.columns:
         op_types = list(data_mundial["operation_type_name"].dropna().unique())
         n_ops = len(op_types)
@@ -94,6 +97,7 @@ def pagina_uruguay_en_el_mundo():
             rows = math.ceil(n_ops / cols)
             subplot_titles = op_types
             fig_sub = make_subplots(rows=rows, cols=cols, subplot_titles=subplot_titles)
+            # Paleta de colores para los gráficos de barras en esta página
             bar_palette = ["#F28E2B", "#4E79A7", "#59A14F", "#E15759", "#EDC948",
                            "#B07AA1", "#76B7B2", "#FF9DA7", "#9C755F", "#BAB0AC"]
             for idx, op in enumerate(op_types):
@@ -104,7 +108,7 @@ def pagina_uruguay_en_el_mundo():
                     df_op_count = df_op["operation_country_name"].value_counts().reset_index()
                     df_op_count.columns = ["País de Operación", "Frecuencia"]
                     df_op_count = df_op_count.sort_values("Frecuencia", ascending=False)
-                    # Lógica para Top 5: Si "Uruguay" aparece, incluirlo y tomar 4 de los demás; de lo contrario, tomar 5.
+                    # Lógica para Top 5: si "Uruguay" aparece (aunque no debería en esta página), se incluye y se toman 4 de los demás; de lo contrario, tomar 5.
                     if "Uruguay" in df_op_count["País de Operación"].values:
                         row_uruguay = df_op_count[df_op_count["País de Operación"] == "Uruguay"]
                         df_others = df_op_count[df_op_count["País de Operación"] != "Uruguay"]
