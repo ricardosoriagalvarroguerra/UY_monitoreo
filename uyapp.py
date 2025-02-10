@@ -31,7 +31,9 @@ def pagina_principal():
 def pagina_tablas():
     st.title("Tablas")
     st.write("Visualización de los datos de la Base de Datos.")
+    
     st.sidebar.markdown("### Filtros para Raw Data")
+    # Filtros para otras variables
     contract_type_filter = st.sidebar.multiselect("Selecciona Contract Type", sorted(data["contract_type"].dropna().unique())) if "contract_type" in data.columns else []
     status_filter = st.sidebar.multiselect("Selecciona Status", sorted(data["status"].dropna().unique())) if "status" in data.columns else []
     operation_type_name_filter = st.sidebar.multiselect("Selecciona Operation Type Name", sorted(data["operation_type_name"].dropna().unique())) if "operation_type_name" in data.columns else []
@@ -40,6 +42,14 @@ def pagina_tablas():
     procurement_type_filter = st.sidebar.multiselect("Selecciona Procurement Type", sorted(data["procurement_type"].dropna().unique())) if "procurement_type" in data.columns else []
     awarded_firm_country_name_filter = st.sidebar.multiselect("Selecciona Awarded Firm Country Name", sorted(data["awarded_firm_country_name"].dropna().unique())) if "awarded_firm_country_name" in data.columns else []
     
+    # Filtro de tiempo: Año de Contrato (slider)
+    if "contract_year" in data.columns:
+        min_year = int(data["contract_year"].min())
+        max_year = int(data["contract_year"].max())
+        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
+    else:
+        year_range = None
+
     filtered_data = data.copy()
     if contract_type_filter:
         filtered_data = filtered_data[filtered_data["contract_type"].isin(contract_type_filter)]
@@ -55,7 +65,9 @@ def pagina_tablas():
         filtered_data = filtered_data[filtered_data["procurement_type"].isin(procurement_type_filter)]
     if awarded_firm_country_name_filter and "awarded_firm_country_name" in filtered_data.columns:
         filtered_data = filtered_data[filtered_data["awarded_firm_country_name"].isin(awarded_firm_country_name_filter)]
-    
+    if year_range and "contract_year" in filtered_data.columns:
+        filtered_data = filtered_data[(filtered_data["contract_year"] >= year_range[0]) & (filtered_data["contract_year"] <= year_range[1])]
+
     tabs = st.tabs(["Raw Data", "Agregada"])
     
     with tabs[0]:
@@ -151,6 +163,12 @@ def pagina_visualizaciones():
         ct_filter = st.sidebar.multiselect("Filt. Contract Type", ct_values)
         if ct_filter:
             data_vis = data_vis[data_vis["contract_type"].isin(ct_filter)]
+    if "contract_year" in data_vis.columns:
+        min_year = int(data_vis["contract_year"].min())
+        max_year = int(data_vis["contract_year"].max())
+        year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
+        data_vis = data_vis[(data_vis["contract_year"] >= year_range[0]) & (data_vis["contract_year"] <= year_range[1])]
+    
     excluir_global = st.sidebar.checkbox("Excluir AWD=OP", value=True)
     tabs = st.tabs(["Descriptivo", "Tipo de Operación"])
     
