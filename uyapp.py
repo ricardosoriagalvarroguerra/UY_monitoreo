@@ -46,21 +46,25 @@ def pagina_uruguay_nacional():
         data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & 
                                       (data_nacional["contract_year"] <= year_range[1])]
     
-    # Filtros adicionales para contract_type, operation_type_name y economic_sector_name
+    # Filtros adicionales con opción única (por default "Todos")
     if "contract_type" in data_nacional.columns:
         contract_types = sorted(data_nacional["contract_type"].dropna().unique())
-        selected_contract_types = st.sidebar.multiselect("Tipo de Contrato", contract_types, default=contract_types)
-        data_nacional = data_nacional[data_nacional["contract_type"].isin(selected_contract_types)]
+        # La opción "Todos" permite ver todos los tipos sin filtrar
+        selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
+        if selected_contract_type != "Todos":
+            data_nacional = data_nacional[data_nacional["contract_type"] == selected_contract_type]
     
     if "operation_type_name" in data_nacional.columns:
         op_types = sorted(data_nacional["operation_type_name"].dropna().unique())
-        selected_op_types = st.sidebar.multiselect("Tipo de Operación", op_types, default=op_types)
-        data_nacional = data_nacional[data_nacional["operation_type_name"].isin(selected_op_types)]
+        selected_op_type = st.sidebar.selectbox("Tipo de Operación", ["Todos"] + op_types)
+        if selected_op_type != "Todos":
+            data_nacional = data_nacional[data_nacional["operation_type_name"] == selected_op_type]
     
     if "economic_sector_name" in data_nacional.columns:
         sectors = sorted(data_nacional["economic_sector_name"].dropna().unique())
-        selected_sectors = st.sidebar.multiselect("Sector Económico", sectors, default=sectors)
-        data_nacional = data_nacional[data_nacional["economic_sector_name"].isin(selected_sectors)]
+        selected_sector = st.sidebar.selectbox("Sector Económico", ["Todos"] + sectors)
+        if selected_sector != "Todos":
+            data_nacional = data_nacional[data_nacional["economic_sector_name"] == selected_sector]
     
     st.write("Mostrando contratos en Uruguay (Operación Nacional).")
     
@@ -79,7 +83,7 @@ def pagina_uruguay_nacional():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_layout(
-            height=250,  # Altura reducida
+            height=250,
             margin=dict(l=10, r=10, t=10, b=10)
         )
     else:
