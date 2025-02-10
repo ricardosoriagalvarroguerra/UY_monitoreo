@@ -44,7 +44,7 @@ def pagina_uruguay_nacional():
         max_year = int(data_nacional["contract_year"].max())
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
                                        value=(min_year, max_year), step=1)
-        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) &
+        data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & 
                                       (data_nacional["contract_year"] <= year_range[1])]
     
     # Filtros adicionales: Tipo de Contrato, Tipo de Operación y Sector Económico
@@ -89,7 +89,7 @@ def pagina_uruguay_nacional():
         st.markdown(f"""
 <div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
     <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
-    <h1 style="color: white; font-size: 28px;">{total_nacional}</h1>
+    <h1 style="color: white; font-size: 28px;">{total_nacional:,}</h1>
 </div>
 """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
@@ -170,7 +170,7 @@ def pagina_uruguay_en_el_mundo():
         max_year = int(data_mundial["contract_year"].max())
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year,
                                        value=(min_year, max_year), step=1)
-        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) &
+        data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & 
                                     (data_mundial["contract_year"] <= year_range[1])]
     
     if "contract_type" in data_mundial.columns:
@@ -200,14 +200,17 @@ def pagina_uruguay_en_el_mundo():
             else:
                 data_mundial = data_mundial[data_mundial["operation_country_name"] == selected_op_country]
     
-    eliminar_iguales = st.sidebar.checkbox(
-        "Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales", value=False)
+    eliminar_iguales = st.sidebar.checkbox("Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales", value=False)
     if eliminar_iguales:
         data_mundial = data_mundial[data_mundial["operation_country_name"] != data_mundial["awarded_firm_country_name"]]
     
     st.write("Mostrando contratos en otros países, donde se evalúa la participación de empresas uruguayas.")
     
     total_mundial = data_mundial.shape[0]
+    # Agregar delimitadores de mil al value box usando f-string con :, 
+    # de modo que si total_mundial es 12345 se muestre como "12,345"
+    total_mundial_str = f"{total_mundial:,}"
+    
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_uruguayan = (uruguayan_contracts / total_mundial * 100) if total_mundial > 0 else 0
     
@@ -220,7 +223,8 @@ def pagina_uruguay_en_el_mundo():
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
         fig_bar.update_traces(marker_color="gray")
-        fig_bar.update_layout(height=250, margin=dict(l=10, r=10, t=10, b=10))
+        # Reducir el ancho del gráfico de montos
+        fig_bar.update_layout(width=600, height=250, margin=dict(l=10, r=10, t=10, b=10))
     else:
         fig_bar = None
 
@@ -229,7 +233,7 @@ def pagina_uruguay_en_el_mundo():
         st.markdown(f"""
 <div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
     <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
-    <h1 style="color: white; font-size: 28px;">{total_mundial}</h1>
+    <h1 style="color: white; font-size: 28px;">{total_mundial_str}</h1>
 </div>
 """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
@@ -247,7 +251,7 @@ def pagina_uruguay_en_el_mundo():
             values="Valor",
             names="Categoría",
             hole=0.7,
-            color_discrete_map={"Uruguay": "#669bbc", "Otros": "#cccccc"}
+            color_discrete_map={"Uruguay": "#669bbc", "Otros": "#003049"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
         donut_fig.update_layout(
@@ -283,7 +287,7 @@ def pagina_uruguay_en_el_mundo():
                 title=dict(text="Frecuencia de Contratos por Año", x=0.5, pad=dict(b=40)),
                 legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="center", x=0.5),
                 xaxis_title="",
-                height=220,
+                height=260,  # Se incrementa la altura del gráfico de frecuencia
                 margin=dict(l=10, r=10, t=60, b=10),
                 yaxis=dict(title="Total Contratos", side="left"),
                 yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right")
@@ -322,7 +326,6 @@ def tabla_pivot():
         if selected_sector != "Todos":
             df = df[df["economic_sector_name"] == selected_sector]
     
-    # Agrupar por País de la Operación y calcular indicadores
     summary = df.groupby("operation_country_name").apply(lambda g: pd.Series({
          "Total Contratos": g.shape[0],
          "Contratos Ganados por Empresas Uruguayas": (g["awarded_firm_country_name"] == "Uruguay").sum(),
