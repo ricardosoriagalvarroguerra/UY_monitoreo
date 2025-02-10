@@ -5,36 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Inyección de CSS actualizado para un tema inspirado en Uruguay
-st.markdown(
-    """
-    <style>
-    /* Sidebar: usa el data-testid para apuntar al sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #003087;
-        color: white;
-    }
-    [data-testid="stSidebar"] * {
-        color: white;
-    }
-    /* Contenedor principal */
-    .block-container {
-        background-color: #F8F9FA;
-    }
-    /* Encabezados */
-    h1, h2, h3, h4, h5, h6 {
-        color: #003087;
-    }
-    /* Botones */
-    .stButton>button {
-        background-color: #003087;
-        color: white;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Función para cargar y normalizar la base de datos
 @st.cache_data
 def load_data():
@@ -64,6 +34,7 @@ def pagina_uruguay_nacional():
     data_nacional = data.copy()
     if "operation_country_name" in data_nacional.columns:
         data_nacional = data_nacional[data_nacional["operation_country_name"] == "Uruguay"]
+    # Filtro de tiempo por año de contrato
     if "contract_year" in data_nacional.columns:
         min_year = int(data_nacional["contract_year"].min())
         max_year = int(data_nacional["contract_year"].max())
@@ -105,7 +76,7 @@ def pagina_uruguay_en_el_mundo():
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
         data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & (data_mundial["contract_year"] <= year_range[1])]
     st.write("Mostrando contratos donde empresas uruguayas operan en el exterior.")
-    # Para cada Operation Type, crear subgráficos de barras horizontales con el top 5 de países de operación.
+    # Para cada Operation Type, se muestran subgráficos de barras horizontales con el top 5 de países de operación.
     if "operation_type_name" in data_mundial.columns:
         op_types = list(data_mundial["operation_type_name"].dropna().unique())
         n_ops = len(op_types)
@@ -116,6 +87,7 @@ def pagina_uruguay_en_el_mundo():
             rows = math.ceil(n_ops / cols)
             subplot_titles = op_types
             fig_sub = make_subplots(rows=rows, cols=cols, subplot_titles=subplot_titles)
+            # Paleta de colores para los gráficos de barras en esta página
             bar_palette = ["#F28E2B", "#4E79A7", "#59A14F", "#E15759", "#EDC948",
                            "#B07AA1", "#76B7B2", "#FF9DA7", "#9C755F", "#BAB0AC"]
             for idx, op in enumerate(op_types):
@@ -126,7 +98,7 @@ def pagina_uruguay_en_el_mundo():
                     df_op_count = df_op["operation_country_name"].value_counts().reset_index()
                     df_op_count.columns = ["País de Operación", "Frecuencia"]
                     df_op_count = df_op_count.sort_values("Frecuencia", ascending=False)
-                    # Lógica para Top 5: Si "Uruguay" aparece, incluirlo y tomar 4 de los demás; si no, tomar 5.
+                    # Lógica para Top 5: Si "Uruguay" aparece, incluirlo y tomar 4 de los demás; de lo contrario, tomar 5.
                     if "Uruguay" in df_op_count["País de Operación"].values:
                         row_uruguay = df_op_count[df_op_count["País de Operación"] == "Uruguay"]
                         df_others = df_op_count[df_op_count["País de Operación"] != "Uruguay"]
