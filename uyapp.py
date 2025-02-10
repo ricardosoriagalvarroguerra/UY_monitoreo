@@ -70,7 +70,7 @@ def pagina_uruguay_nacional():
     with col_left:
         # Value Box de Contratos con ancho reducido (max-width de 90px), fondo gris, letras blancas y título con fuente de 20px
         st.markdown(f"""
-            <div style="max-width: 90px; margin: 0; background-color: gray; padding: 10px; border-radius: 5px;">
+            <div style="max-width: 110px; margin: 0; background-color: gray; padding: 10px; border-radius: 5px;">
                 <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
