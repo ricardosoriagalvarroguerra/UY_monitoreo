@@ -11,11 +11,9 @@ def load_data():
     # Lee el archivo Parquet; asegúrate de tener instalado pyarrow o fastparquet
     df = pd.read_parquet("uy_procurements.parquet")
     
-    # Normalización de la columna 'awarded_firm_country_name'
+    # Normalización de las columnas 'awarded_firm_country_name' y 'operation_country_name'
     if "awarded_firm_country_name" in df.columns:
         df["awarded_firm_country_name"] = df["awarded_firm_country_name"].astype(str).str.strip().str.title()
-    
-    # Normalización de la columna 'operation_country_name'
     if "operation_country_name" in df.columns:
         df["operation_country_name"] = df["operation_country_name"].astype(str).str.strip().str.title()
     
@@ -201,7 +199,6 @@ def pagina_tablas():
         # 6. Duración de Contratos
         st.subheader("6. Duración de Contratos")
         if "start_date" in filtered_data.columns and "stop_date" in filtered_data.columns:
-            # Convertir a datetime y calcular la duración en días
             filtered_data["start_date"] = pd.to_datetime(filtered_data["start_date"], errors="coerce")
             filtered_data["stop_date"] = pd.to_datetime(filtered_data["stop_date"], errors="coerce")
             filtered_data["duration_days"] = (filtered_data["stop_date"] - filtered_data["start_date"]).dt.days
@@ -243,36 +240,38 @@ def pagina_tablas():
 # -----------------------------
 def pagina_visualizaciones():
     st.title("Visualizaciones")
-    tabs = st.tabs(["Descriptivo"])  # Se pueden agregar más pestañas si se requiere
     
+    # Agregar un filtro de contract_type en Visualizaciones (aplicado a toda la sección)
+    data_vis = data.copy()
+    if "contract_type" in data_vis.columns:
+        ct_values = sorted(data_vis["contract_type"].dropna().unique())
+        ct_filter = st.sidebar.multiselect("Filt. Contract Type", ct_values)
+        if ct_filter:
+            data_vis = data_vis[data_vis["contract_type"].isin(ct_filter)]
+    
+    # Crear dos pestañas: "Descriptivo" y "Tipo de Operación"
+    tabs = st.tabs(["Descriptivo", "Tipo de Operación"])
+    
+    # --- Tab Descriptivo ---
     with tabs[0]:
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
-        # Agregar checkbox en el sidebar para elegir si se aplica la lógica de exclusión.
-        # Se utiliza un nombre corto: "Excluir AWD=OP"
+        # Checkbox en el sidebar para elegir si se aplica la lógica de exclusión (nombre corto)
         aplicar_exclusion = st.sidebar.checkbox("Excluir AWD=OP", value=True)
-        
-        # Según la opción, filtrar o no la data (comparación ya se hace con valores normalizados)
-        if aplicar_exclusion and "operation_country_name" in data.columns:
-            data_filtrado = data[data["awarded_firm_country_name"] != data["operation_country_name"]]
+        if aplicar_exclusion and "operation_country_name" in data_vis.columns:
+            data_filtrado = data_vis[data_vis["awarded_firm_country_name"] != data_vis["operation_country_name"]]
         else:
-            data_filtrado = data.copy()
+            data_filtrado = data_vis.copy()
         
         # Agrupar y contar la frecuencia de países en awarded_firm_country_name
         df_freq = data_filtrado["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        
-        # Seleccionar el top 15 países (según mayor frecuencia)
+        # Seleccionar el top 15 países
         df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15)
-        # Para que en el gráfico horizontal la barra de mayor frecuencia aparezca en la parte superior,
-        # se ordena de forma ascendente
+        # Para que la barra de mayor frecuencia aparezca en la parte superior, se ordena ascendentemente
         df_top15 = df_top15.sort_values("Frecuencia", ascending=True)
-        
-        # Asignar colores: si el país es "Uruguay" se usa #669bbc, para los demás #003049
         colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top15["Pais"]]
-        
-        # Crear gráfico de barras horizontal con Plotly incluyendo las etiquetas de valores
         fig = px.bar(
             df_top15,
             x="Frecuencia",
@@ -280,16 +279,39 @@ def pagina_visualizaciones():
             orientation="h",
             title="Frecuencia de Contratos Ganados por País (Top 15)",
             labels={"Frecuencia": "Frecuencia", "Pais": "País"},
-            text="Frecuencia"  # Etiqueta de valores
+            text="Frecuencia"
         )
-        # Actualizar colores y posición de las etiquetas (texto)
         fig.update_traces(marker_color=colors, textposition='outside')
-        
-        # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
         altura = max(600, len(df_top15) * 40)
         fig.update_layout(height=altura)
-        
         st.plotly_chart(fig, use_container_width=True)
+    
+    # --- Tab Tipo de Operación ---
+    with tabs[1]:
+        st.header("Tipo de Operación")
+        st.write("Donut Chart por cada valor único de Operation Type, mostrando el % de AWD")
+        if "operation_type_name" in data_vis.columns:
+            op_types = data_vis["operation_type_name"].dropna().unique()
+            for op in op_types:
+                st.subheader(f"Operation Type: {op}")
+                # Filtrar data para este operation_type_name
+                df_op = data_vis[data_vis["operation_type_name"] == op]
+                # Agrupar por awarded_firm_country_name para obtener la distribución
+                df_awd = df_op["awarded_firm_country_name"].value_counts().reset_index()
+                df_awd.columns = ["Pais", "Frecuencia"]
+                total_awd = df_awd["Frecuencia"].sum()
+                df_awd["Porcentaje"] = (df_awd["Frecuencia"] / total_awd * 100).round(2)
+                # Crear gráfico donut (pie con hole)
+                fig_donut = px.pie(
+                    df_awd,
+                    names="Pais",
+                    values="Frecuencia",
+                    title=f"Distribución de AWD en OP: {op}",
+                    hole=0.4
+                )
+                st.plotly_chart(fig_donut, use_container_width=True)
+        else:
+            st.write("La columna 'operation_type_name' no se encuentra en la data.")
 
 # -----------------------------
 # Función principal de la aplicación
