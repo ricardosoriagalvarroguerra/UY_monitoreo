@@ -53,20 +53,20 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Mostrar los Value Boxes en dos columnas con menor separación y tipografía más grande
+    # Mostrar los Value Boxes en dos columnas, alineados a la izquierda, con menos separación entre título y monto
     col1, col2 = st.columns(2, gap="small")
     with col1:
         st.markdown(f"""
-            <div style="border: 2px solid #8ecae6; padding: 2px; border-radius: 5px; text-align: left; max-width: 130px; margin: 0;">
-                <h3 style="color: white; margin: 0; font-size: 14px; line-height: 1;">Contratos</h3>
-                <h1 style="color: white; margin: 0; font-size: 24px; line-height: 1;">{total_nacional}</h1>
+            <div style="border: 2px solid #8ecae6; padding: 2px; border-radius: 5px; text-align: left; max-width: 140px; margin: 0;">
+                <h3 style="color: white; margin: 0; font-size: 16px; line-height: 0.8; font-weight: normal;">Contratos</h3>
+                <h1 style="color: white; margin: 0; font-size: 28px; line-height: 0.8; font-weight: normal;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-            <div style="border: 2px solid #8ecae6; padding: 2px; border-radius: 5px; text-align: left; max-width: 130px; margin: 0;">
-                <h3 style="color: white; margin: 0; font-size: 14px; line-height: 1;">% Locales Ganados</h3>
-                <h1 style="color: white; margin: 0; font-size: 24px; line-height: 1;">{percentage_local:.1f}%</h1>
+            <div style="border: 2px solid #8ecae6; padding: 2px; border-radius: 5px; text-align: left; max-width: 140px; margin: 0;">
+                <h3 style="color: white; margin: 0; font-size: 16px; line-height: 0.8; font-weight: normal;">% Locales Ganados</h3>
+                <h1 style="color: white; margin: 0; font-size: 28px; line-height: 0.8; font-weight: normal;">{percentage_local:.1f}%</h1>
             </div>
             """, unsafe_allow_html=True)
     
