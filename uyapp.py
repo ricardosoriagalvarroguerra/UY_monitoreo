@@ -132,7 +132,7 @@ def pagina_uruguay_nacional():
     with col_right:
         if "contract_year" in data_nacional.columns:
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"]\
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -280,7 +280,7 @@ def pagina_uruguay_en_el_mundo():
     with col_right:
         if "contract_year" in data_mundial.columns:
             df_total = data_mundial.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]\
+            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -323,7 +323,7 @@ def tabla_pivot():
     La tabla muestra para cada país:
     - Total de Contratos  
     - Contratos Ganados por Empresas Uruguayas  
-    - % Contratos Uruguayanos  
+    - % Contratos a Empresas UY  
     - Monto Total Adjudicado (USD)  
     - Monto a Uruguay (USD)  
     - % Monto a Uruguay  
@@ -343,19 +343,17 @@ def tabla_pivot():
          "Monto a Uruguay (USD)": g.loc[g["awarded_firm_country_name"] == "Uruguay", "idb_amount"].sum()
     })).reset_index()
     
-    summary["% Contratos Uruguayanos"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2).astype(str) + "%"
+    # Calcular porcentajes y formatear
+    summary["% Contratos a Empresas UY"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2).astype(str) + "%"
     summary["% Monto a Uruguay"] = (summary["Monto a Uruguay (USD)"] / summary["Monto Total Adjudicado (USD)"] * 100).round(2).astype(str) + "%"
     
-    # Formatear montos con separadores y sin decimales
     summary["Monto Total Adjudicado (USD)"] = summary["Monto Total Adjudicado (USD)"].apply(lambda x: f"${x:,.0f}")
     summary["Monto a Uruguay (USD)"] = summary["Monto a Uruguay (USD)"].apply(lambda x: f"${x:,.0f}")
     
-    # Renombrar la columna y reordenar
     summary = summary.rename(columns={"operation_country_name": "País de la Operación"})
     summary = summary[["País de la Operación", "Total Contratos", "Contratos Ganados por Empresas Uruguayas",
-                       "% Contratos Uruguayanos", "Monto Total Adjudicado (USD)", "Monto a Uruguay (USD)", "% Monto a Uruguay"]]
+                       "% Contratos a Empresas UY", "Monto Total Adjudicado (USD)", "Monto a Uruguay (USD)", "% Monto a Uruguay"]]
     
-    # Crear la tabla con Plotly y formato oscuro
     header_values = list(summary.columns)
     cell_values = [summary[col].tolist() for col in summary.columns]
     
