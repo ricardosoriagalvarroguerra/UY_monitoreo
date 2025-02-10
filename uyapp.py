@@ -65,7 +65,6 @@ def pagina_uruguay_nacional():
         fig_bar.update_layout(
             height=250,  # Altura reducida
             margin=dict(l=10, r=10, t=10, b=10)
-            # Se mantienen las etiquetas y título del eje horizontal
         )
     else:
         fig_bar = None
@@ -74,21 +73,21 @@ def pagina_uruguay_nacional():
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
-        # Value Box de Contratos con max-width de 150px, padding reducido y centrado
+        # Value Box de Contratos con margen inferior agregado para separarlo del gráfico
         st.markdown(f"""
-            <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px; text-align: center;">
+            <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
                 <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
         
-        # Espaciado vertical entre value boxes
-        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+        # Espaciado vertical adicional entre el value box y el siguiente bloque
+        st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
         
-        # Value Box de % Locales Ganados (con título y gráfico donut)
+        # Título del donut chart con margen inferior para separarlo del gráfico
         st.markdown(f"""
             <div style="max-width: 200px; margin: 0;">
-                <h3 style="color: white; margin: 0; font-size: 16px; line-height: 1; font-weight: bold;">% Locales Ganados</h3>
+                <h3 style="color: white; margin: 0 0 10px 0; font-size: 16px; line-height: 1; font-weight: bold;">% Locales Ganados</h3>
             </div>
             """, unsafe_allow_html=True)
         donut_data = pd.DataFrame({
@@ -149,9 +148,9 @@ def pagina_uruguay_nacional():
                     xanchor="center",
                     x=0.5
                 ),
-                xaxis_title="",  # Se puede dejar vacío o mantener el título deseado
+                xaxis_title="",
                 yaxis_title="Número de Contratos",
-                height=220,  # Altura reducida
+                height=220,
                 margin=dict(l=10, r=10, t=60, b=10)
             )
             st.plotly_chart(fig_freq, use_container_width=True)
