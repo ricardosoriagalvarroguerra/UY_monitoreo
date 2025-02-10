@@ -249,13 +249,11 @@ def pagina_visualizaciones():
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
-        # Checkbox para elegir si se aplica la lógica de exclusión
-        aplicar_exclusion = st.checkbox(
-            "Aplicar lógica de exclusión: Excluir registros donde awarded_firm_country_name sea igual a operation_country_name",
-            value=True
-        )
+        # Agregar checkbox en el sidebar para elegir si se aplica la lógica de exclusión.
+        # Se utiliza un nombre corto: "Excluir AWD=OP"
+        aplicar_exclusion = st.sidebar.checkbox("Excluir AWD=OP", value=True)
         
-        # Según la opción, filtrar o no la data
+        # Según la opción, filtrar o no la data (comparación ya se hace con valores normalizados)
         if aplicar_exclusion and "operation_country_name" in data.columns:
             data_filtrado = data[data["awarded_firm_country_name"] != data["operation_country_name"]]
         else:
