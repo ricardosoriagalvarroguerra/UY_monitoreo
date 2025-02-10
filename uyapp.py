@@ -64,25 +64,26 @@ def pagina_uruguay_nacional():
         fig_bar = None
 
     # Usar dos columnas: la izquierda contendrá los value boxes y la derecha el gráfico de barras.
-    # Se modificó la proporción para darle más ancho al gráfico.
+    # Se ajusta la proporción para darle más ancho al gráfico.
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
-        # Value Box de Contratos con ancho reducido (max-width de 90px), fondo gris, letras blancas y título con fuente de 20px
+        # Value Box de Contratos con altura reducida:
+        # Se disminuye el padding y se eliminan márgenes verticales para reducir su altura.
         st.markdown(f"""
-            <div style="max-width: 110px; margin: 0; background-color: gray; padding: 10px; border-radius: 5px;">
-                <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
+            <div style="max-width: 90px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px;">
+                <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
         
-        # Espaciado vertical para separar los value boxes
-        st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
+        # Espaciado vertical entre value boxes
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
         
         # Value Box de % Locales Ganados (con título y gráfico donut)
         st.markdown(f"""
             <div style="max-width: 200px; margin: 0;">
-                <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 16px; line-height: 1; font-weight: bold;">% Locales Ganados</h3>
+                <h3 style="color: white; margin: 0; font-size: 16px; line-height: 1; font-weight: bold;">% Locales Ganados</h3>
             </div>
             """, unsafe_allow_html=True)
         donut_data = pd.DataFrame({
