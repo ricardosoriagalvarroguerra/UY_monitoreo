@@ -26,9 +26,10 @@ def pagina_principal():
     
     - **Uruguay Nacional:** Contratos con operaciones en Uruguay.
     - **Uruguay en el Mundo:** Contratos en los que empresas uruguayas operan en el exterior.
+    - **Tabla Pivot:** Visualización de una tabla dinámica cruzando Año, Tipo de Contrato y País.
     """)
 
-# Página Uruguay Nacional (estructura y filtros de una sola opción)
+# Página Uruguay Nacional
 def pagina_uruguay_nacional():
     st.title("Uruguay Nacional")
     
@@ -37,7 +38,7 @@ def pagina_uruguay_nacional():
     if "operation_country_name" in data_nacional.columns:
         data_nacional = data_nacional[data_nacional["operation_country_name"] == "Uruguay"]
     
-    # Filtro de tiempo por año de contrato
+    # Filtro de tiempo por año de contrato (si existe)
     if "contract_year" in data_nacional.columns:
         min_year = int(data_nacional["contract_year"].min())
         max_year = int(data_nacional["contract_year"].max())
@@ -89,7 +90,7 @@ def pagina_uruguay_nacional():
     else:
         fig_bar = None
 
-    # Distribución en dos columnas
+    # Distribución en dos columnas: value boxes y gráficos
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
@@ -111,7 +112,7 @@ def pagina_uruguay_nacional():
         # Título y gráfico donut de % Locales Ganados
         st.markdown(f"""
             <div style="max-width: 200px; margin: 0;">
-                <h3 style="color: white; margin: 0 0 10px 0; font-size: 16px; 
+                <h3 style="color: white; margin: 0 0 10px 0; font-size: 16px;
                            line-height: 1; font-weight: bold;">% Locales Ganados</h3>
             </div>
             """, unsafe_allow_html=True)
@@ -137,10 +138,10 @@ def pagina_uruguay_nacional():
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
-        # Gráfico combinado de frecuencia: barras (total contratos) y línea (contratos ganados por Uruguay)
+        # Gráfico combinado de frecuencia: barras y línea (con eje secundario a la derecha)
         if "contract_year" in data_nacional.columns:
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"]\
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -194,7 +195,7 @@ def pagina_uruguay_nacional():
         else:
             st.write("No se encontró la información necesaria para el gráfico de montos.")
 
-# Página Uruguay en el Mundo (enfoque: contratos fuera de Uruguay y empresa uruguaya ganadora)
+# Página Uruguay en el Mundo
 def pagina_uruguay_en_el_mundo():
     st.title("Uruguay en el Mundo")
     
@@ -212,7 +213,7 @@ def pagina_uruguay_en_el_mundo():
         data_mundial = data_mundial[(data_mundial["contract_year"] >= year_range[0]) & 
                                     (data_mundial["contract_year"] <= year_range[1])]
     
-    # Filtros adicionales (contrato, tipo de operación y sector económico)
+    # Filtros adicionales (Tipo de Contrato, Tipo de Operación y Sector Económico)
     if "contract_type" in data_mundial.columns:
         contract_types = sorted(data_mundial["contract_type"].dropna().unique())
         selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
@@ -231,7 +232,7 @@ def pagina_uruguay_en_el_mundo():
         if selected_sector != "Todos":
             data_mundial = data_mundial[data_mundial["economic_sector_name"] == selected_sector]
     
-    # NUEVO FILTRO: País de Operación
+    # NUEVO FILTRO: País de Operación (con opción "Mercosur")
     if "operation_country_name" in data_mundial.columns:
         unique_countries = sorted(data_mundial["operation_country_name"].dropna().unique())
         op_country_options = ["Todos", "Mercosur"] + unique_countries
@@ -243,7 +244,7 @@ def pagina_uruguay_en_el_mundo():
             else:
                 data_mundial = data_mundial[data_mundial["operation_country_name"] == selected_op_country]
     
-    # NUEVO TICKET BOX: Eliminar observaciones donde operation_country_name y awarded_firm_country_name sean iguales
+    # NUEVO TICKET BOX: Eliminar observaciones donde operación y adjudicatario sean iguales
     eliminar_iguales = st.sidebar.checkbox(
         "Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales", value=False)
     if eliminar_iguales:
@@ -256,7 +257,7 @@ def pagina_uruguay_en_el_mundo():
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_uruguayan = (uruguayan_contracts / total_mundial * 100) if total_mundial > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año (contratos fuera de Uruguay) con color "gray"
+    # Gráfico de montos: Suma de idb_amount por año con color "gray"
     if "contract_year" in data_mundial.columns and "idb_amount" in data_mundial.columns:
         df_bar = data_mundial.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -321,10 +322,10 @@ def pagina_uruguay_en_el_mundo():
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
-        # Gráfico de frecuencia: barras (total contratos) y línea (contratos ganados por Uruguay)
+        # Gráfico de frecuencia: barras y línea (con eje secundario a la derecha)
         if "contract_year" in data_mundial.columns:
             df_total = data_mundial.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
+            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]\
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -378,16 +379,60 @@ def pagina_uruguay_en_el_mundo():
         else:
             st.write("No se encontró la información necesaria para el gráfico de montos.")
 
+# Nueva Página: Tabla Pivot
+def tabla_pivot():
+    st.title("Tabla Pivot")
+    st.write("""
+    **Tabla Dinámica (Pivot Table):**  
+    Filas: Años (contract_year)  
+    Columnas: Tipos de Contrato (contract_type)  
+    En cada celda se muestra la cantidad de contratos que ganó Uruguay vs. otros países, en el formato "X vs Y", donde:  
+      - **X**: Contratos ganados por Uruguay  
+      - **Y**: Contratos ganados por otros países  
+    """)
+    # Verificamos que existan las columnas necesarias
+    required_cols = ['contract_year', 'contract_type', 'awarded_firm_country_name']
+    for col in required_cols:
+        if col not in data.columns:
+            st.write(f"La columna {col} no se encontró en la data.")
+            return
+    
+    # Creamos una copia y definimos una nueva columna "Gano"
+    df = data.copy()
+    df['Gano'] = df['awarded_firm_country_name'].apply(lambda x: 'Uruguay' if x == "Uruguay" else 'Otros')
+    
+    # Agrupamos por Año, Tipo de Contrato y Gano, y contamos las observaciones
+    group = df.groupby(['contract_year', 'contract_type', 'Gano']).size().unstack(fill_value=0)
+    
+    # Aseguramos que existan ambas categorías
+    if 'Uruguay' not in group.columns:
+        group['Uruguay'] = 0
+    if 'Otros' not in group.columns:
+        group['Otros'] = 0
+    
+    # Creamos una columna de resultado con el formato "X vs Y"
+    group['Resultado'] = group['Uruguay'].astype(str) + " vs " + group['Otros'].astype(str)
+    
+    # Reiniciamos el índice y pivotamos para que:
+    # - Las filas sean los Años (contract_year)
+    # - Las columnas sean los Tipos de Contrato (contract_type)
+    pivot_df = group.reset_index().pivot(index='contract_year', columns='contract_type', values='Resultado')
+    
+    st.dataframe(pivot_df)
+
+# Función principal de navegación
 def main():
     st.sidebar.title("Navegación")
     pagina = st.sidebar.selectbox("Selecciona una página:", 
-                                  ("Página Principal", "Uruguay Nacional", "Uruguay en el Mundo"))
+                                  ("Página Principal", "Uruguay Nacional", "Uruguay en el Mundo", "Tabla Pivot"))
     if pagina == "Página Principal":
         pagina_principal()
     elif pagina == "Uruguay Nacional":
         pagina_uruguay_nacional()
     elif pagina == "Uruguay en el Mundo":
         pagina_uruguay_en_el_mundo()
+    elif pagina == "Tabla Pivot":
+        tabla_pivot()
 
 if __name__ == "__main__":
     main()
