@@ -81,7 +81,6 @@ def pagina_uruguay_nacional():
             y="idb_amount",
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
-        # Se asigna el color "gray" para que coincida con el value box
         fig_bar.update_traces(marker_color="gray")
         fig_bar.update_layout(
             height=250,
@@ -144,14 +143,12 @@ def pagina_uruguay_nacional():
             df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
-            # Traza de barras en el eje primario
             fig_freq.add_trace(go.Bar(
                 x=df_total["contract_year"],
                 y=df_total["Total Contratos"],
                 name="Total Contratos",
                 marker_color="#003049"
             ))
-            # Traza de líneas asignada al eje secundario (yaxis2)
             fig_freq.add_trace(go.Scatter(
                 x=df_local["contract_year"],
                 y=df_local["Contratos Uruguay"],
@@ -160,7 +157,6 @@ def pagina_uruguay_nacional():
                 line=dict(color="#669bbc"),
                 yaxis="y2"
             ))
-            # Configuración de ejes duales: eje primario a la izquierda y eje secundario a la derecha
             fig_freq.update_layout(
                 title=dict(
                     text="Frecuencia de Contratos por Año",
@@ -237,9 +233,7 @@ def pagina_uruguay_en_el_mundo():
     
     # NUEVO FILTRO: País de Operación
     if "operation_country_name" in data_mundial.columns:
-        # Obtenemos los países únicos (ya sin Uruguay)
         unique_countries = sorted(data_mundial["operation_country_name"].dropna().unique())
-        # Se agrega la opción "Mercosur"
         op_country_options = ["Todos", "Mercosur"] + unique_countries
         selected_op_country = st.sidebar.selectbox("País de Operación", op_country_options)
         if selected_op_country != "Todos":
@@ -249,11 +243,16 @@ def pagina_uruguay_en_el_mundo():
             else:
                 data_mundial = data_mundial[data_mundial["operation_country_name"] == selected_op_country]
     
+    # NUEVO TICKET BOX: Eliminar observaciones donde operation_country_name y awarded_firm_country_name sean iguales
+    eliminar_iguales = st.sidebar.checkbox(
+        "Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales", value=False)
+    if eliminar_iguales:
+        data_mundial = data_mundial[data_mundial["operation_country_name"] != data_mundial["awarded_firm_country_name"]]
+    
     st.write("Mostrando contratos en otros países, donde se evalúa la participación de empresas uruguayas.")
     
     # Cálculo de métricas:
     total_mundial = data_mundial.shape[0]
-    # Cantidad de contratos en que la empresa ganadora es de Uruguay
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_uruguayan = (uruguayan_contracts / total_mundial * 100) if total_mundial > 0 else 0
     
@@ -266,7 +265,6 @@ def pagina_uruguay_en_el_mundo():
             y="idb_amount",
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
-        # Se asigna el color "gray" para que coincida con el value box
         fig_bar.update_traces(marker_color="gray")
         fig_bar.update_layout(
             height=250,
@@ -310,7 +308,7 @@ def pagina_uruguay_en_el_mundo():
             values="Valor",
             names="Categoría",
             hole=0.7,
-            color_discrete_map={"Uruguay": "#cccccc", "Otros": "#669bbc"}
+            color_discrete_map={"Uruguay": "#669bbc", "Otros": "#cccccc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
         donut_fig.update_layout(
@@ -329,14 +327,12 @@ def pagina_uruguay_en_el_mundo():
             df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
-            # Traza de barras en el eje primario
             fig_freq.add_trace(go.Bar(
                 x=df_total["contract_year"],
                 y=df_total["Total Contratos"],
                 name="Total Contratos",
                 marker_color="#003049"
             ))
-            # Traza de líneas asignada al eje secundario (yaxis2)
             fig_freq.add_trace(go.Scatter(
                 x=df_uruguayan["contract_year"],
                 y=df_uruguayan["Contratos Uruguay"],
@@ -345,7 +341,6 @@ def pagina_uruguay_en_el_mundo():
                 line=dict(color="#669bbc"),
                 yaxis="y2"
             ))
-            # Configuración de ejes duales: eje primario a la izquierda y eje secundario a la derecha
             fig_freq.update_layout(
                 title=dict(
                     text="Frecuencia de Contratos por Año",
