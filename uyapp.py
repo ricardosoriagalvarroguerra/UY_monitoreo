@@ -264,6 +264,8 @@ def pagina_uruguay_en_el_mundo():
             y="idb_amount",
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
+        # Se asigna el mismo color que el value box ("gray")
+        fig_bar.update_traces(marker_color="gray")
         fig_bar.update_layout(
             height=250,
             margin=dict(l=10, r=10, t=10, b=10)
@@ -300,12 +302,13 @@ def pagina_uruguay_en_el_mundo():
             "Categoría": ["Uruguay", "Otros"],
             "Valor": [percentage_uruguayan, 100 - percentage_uruguayan]
         })
+        # Se invierten los colores entre "Uruguay" y "Otros"
         donut_fig = px.pie(
             donut_data,
             values="Valor",
             names="Categoría",
             hole=0.7,
-            color_discrete_map={"Uruguay": "#669bbc", "Otros": "#cccccc"}
+            color_discrete_map={"Uruguay": "#cccccc", "Otros": "#669bbc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
         donut_fig.update_layout(
