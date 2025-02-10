@@ -53,32 +53,19 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Mostrar el Value Box de "Contratos" y el de "% Locales Ganados"
-    # Se ubican en dos columnas sin fondo ni borde, con poco margen entre el título y el número.
-    col1, col2 = st.columns(2, gap="small")
-    with col1:
-        st.markdown(f"""
-            <div style="padding: 2px; max-width: 140px; margin: 0;">
-                <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 16px; line-height: 1; font-weight: bold;">Contratos</h3>
-                <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
-            </div>
-            """, unsafe_allow_html=True)
-    with col2:
-        # Crear el donut chart para % locales
-        donut_data = pd.DataFrame({
-            "Categoría": ["Locales", "Otros"],
-            "Valor": [percentage_local, 100 - percentage_local]
-        })
-        donut_fig = px.pie(donut_data, values="Valor", names="Categoría", hole=0.7,
-                           color_discrete_map={"Locales": "#669bbc", "Otros": "#cccccc"})
-        # Configurar el gráfico donut con tamaño mayor (ancho) para que se acomode la leyenda y el valor
-        donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(
-            margin=dict(l=0, r=0, t=0, b=0),
-            height=150, width=200,
-            annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5, font_size=24, font_color="white", showarrow=False)]
-        )
-        st.plotly_chart(donut_fig, use_container_width=False)
+    # Mostrar los Value Boxes (apilados verticalmente)
+    st.markdown(f"""
+        <div style="max-width: 140px; margin: 0;">
+            <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 16px; line-height: 1; font-weight: bold;">Contratos</h3>
+            <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style="max-width: 140px; margin: 0;">
+            <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 16px; line-height: 1; font-weight: bold;">% Locales Ganados</h3>
+            <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{percentage_local:.1f}%</h1>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Gráfico de barras horizontal: Top 15 de awarded_firm_country_name
     if "awarded_firm_country_name" in data_nacional.columns:
