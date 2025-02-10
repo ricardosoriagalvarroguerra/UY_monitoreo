@@ -245,29 +245,40 @@ def pagina_visualizaciones():
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
+        # Para calcular la frecuencia, primero se excluyen los registros donde
+        # awarded_firm_country_name y operation_country_name sean iguales.
+        if "operation_country_name" in data.columns:
+            data_filtrado = data[data["awarded_firm_country_name"] != data["operation_country_name"]]
+        else:
+            data_filtrado = data.copy()
+        
         # Agrupar y contar la frecuencia de países en awarded_firm_country_name
-        df_freq = data["awarded_firm_country_name"].value_counts().reset_index()
+        df_freq = data_filtrado["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        # Ordenar para gráfico horizontal: de menor a mayor frecuencia
-        df_freq = df_freq.sort_values("Frecuencia", ascending=True)
+        
+        # Seleccionar el top 15 países (según mayor frecuencia)
+        df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15)
+        # Para que en el gráfico horizontal la barra de mayor frecuencia aparezca en la parte superior,
+        # se ordena de forma ascendente
+        df_top15 = df_top15.sort_values("Frecuencia", ascending=True)
         
         # Asignar colores: si el país es "Uruguay" se usa #669bbc, para los demás #003049
-        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq["Pais"]]
+        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top15["Pais"]]
         
         # Crear gráfico de barras horizontal con Plotly
         fig = px.bar(
-            df_freq,
+            df_top15,
             x="Frecuencia",
             y="Pais",
             orientation="h",
-            title="Frecuencia de Contratos Ganados por País",
+            title="Frecuencia de Contratos Ganados por País (Top 15)",
             labels={"Frecuencia": "Frecuencia", "Pais": "País"}
         )
         # Actualizar colores de las barras
         fig.update_traces(marker_color=colors)
         
-        # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
-        altura = max(600, len(df_freq) * 40)
+        # Calcular una altura dinámica: 40 píxeles por cada barra, mínimo 600 píxeles
+        altura = max(600, len(df_top15) * 40)
         fig.update_layout(height=altura)
         
         st.plotly_chart(fig, use_container_width=True)
