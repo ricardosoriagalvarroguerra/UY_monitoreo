@@ -272,17 +272,18 @@ def pagina_visualizaciones():
         # Asignar colores: si el país es "Uruguay" se usa #669bbc, para los demás #003049
         colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top15["Pais"]]
         
-        # Crear gráfico de barras horizontal con Plotly
+        # Crear gráfico de barras horizontal con Plotly incluyendo las etiquetas de valores
         fig = px.bar(
             df_top15,
             x="Frecuencia",
             y="Pais",
             orientation="h",
             title="Frecuencia de Contratos Ganados por País (Top 15)",
-            labels={"Frecuencia": "Frecuencia", "Pais": "País"}
+            labels={"Frecuencia": "Frecuencia", "Pais": "País"},
+            text="Frecuencia"  # Etiqueta de valores
         )
-        # Actualizar colores de las barras
-        fig.update_traces(marker_color=colors)
+        # Actualizar colores y posición de las etiquetas (texto)
+        fig.update_traces(marker_color=colors, textposition='outside')
         
         # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
         altura = max(600, len(df_top15) * 40)
