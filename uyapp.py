@@ -251,20 +251,12 @@ def pagina_visualizaciones():
         # Ordenar para gráfico horizontal: de menor a mayor frecuencia
         df_freq = df_freq.sort_values("Frecuencia", ascending=True)
         
-        # Agregar slider para seleccionar el rango de países a mostrar
-        max_idx = len(df_freq) - 1
-        range_start, range_end = st.slider(
-            "Seleccione el rango de países a mostrar",
-            0, max_idx, (0, min(max_idx, 10)), step=1
-        )
-        df_freq_subset = df_freq.iloc[range_start:range_end+1]
-        
         # Asignar colores: si el país es "Uruguay" se usa #669bbc, para los demás #003049
-        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq_subset["Pais"]]
+        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq["Pais"]]
         
         # Crear gráfico de barras horizontal con Plotly
         fig = px.bar(
-            df_freq_subset,
+            df_freq,
             x="Frecuencia",
             y="Pais",
             orientation="h",
@@ -275,7 +267,7 @@ def pagina_visualizaciones():
         fig.update_traces(marker_color=colors)
         
         # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
-        altura = max(600, len(df_freq_subset) * 40)
+        altura = max(600, len(df_freq) * 40)
         fig.update_layout(height=altura)
         
         st.plotly_chart(fig, use_container_width=True)
