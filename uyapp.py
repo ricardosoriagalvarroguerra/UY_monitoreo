@@ -53,63 +53,54 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Crear una distribución en dos columnas: 
-    # Una columna estrecha a la izquierda con los Value Boxes (apilados verticalmente)
-    # y la otra para el gráfico de barras.
-    col_left, col_right = st.columns([1, 3])
-    
-    with col_left:
-        # Primer Value Box: Total de Contratos (sin fondo, solo texto sobre fondo predeterminado)
+    # Mostrar el Value Box de "Contratos" y el de "% Locales Ganados"
+    # Se ubican en dos columnas sin fondo ni borde, con poco margen entre el título y el número.
+    col1, col2 = st.columns(2, gap="small")
+    with col1:
         st.markdown(f"""
             <div style="padding: 2px; max-width: 140px; margin: 0;">
-                <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 14px; line-height: 1; font-weight: normal;">Contratos</h3>
+                <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 16px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
-        
-        # Segundo Value Box: % Locales Ganados mostrado como Donut Chart
-        # Preparar datos para el donut: dos segmentos (Locales y No Locales)
-        porcentaje = round(percentage_local, 1)
-        complement = round(100 - porcentaje, 1)
+    with col2:
+        # Crear el donut chart para % locales
         donut_data = pd.DataFrame({
-            "Categoría": ["Locales", "No Locales"],
-            "Valor": [porcentaje, complement]
+            "Categoría": ["Locales", "Otros"],
+            "Valor": [percentage_local, 100 - percentage_local]
         })
-        # Crear el gráfico donut
         donut_fig = px.pie(donut_data, values="Valor", names="Categoría", hole=0.7,
-                           color_discrete_map={"Locales": "#669bbc", "No Locales": "#cccccc"})
-        # Quitar leyenda y etiquetas si se desea más minimalismo
+                           color_discrete_map={"Locales": "#669bbc", "Otros": "#cccccc"})
+        # Configurar el gráfico donut con tamaño mayor (ancho) para que se acomode la leyenda y el valor
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        # Agregar anotación central con el porcentaje
         donut_fig.update_layout(
-            annotations=[dict(text=f"{porcentaje}%", x=0.5, y=0.5, font_size=24, showarrow=False)],
-            margin=dict(l=10, r=10, t=10, b=10),
-            height=150, width=150
+            margin=dict(l=0, r=0, t=0, b=0),
+            height=150, width=200,
+            annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5, font_size=24, font_color="white", showarrow=False)]
         )
         st.plotly_chart(donut_fig, use_container_width=False)
     
-    with col_right:
-        # Gráfico de barras horizontal: Top 15 de awarded_firm_country_name
-        if "awarded_firm_country_name" in data_nacional.columns:
-            df_freq = data_nacional["awarded_firm_country_name"].value_counts().reset_index()
-            df_freq.columns = ["Empresa", "Frecuencia"]
-            df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15).sort_values("Frecuencia", ascending=True)
-            colors = ["#669bbc" if empresa == "Uruguay" else "#003049" for empresa in df_top15["Empresa"]]
-            fig = px.bar(
-                df_top15,
-                x="Frecuencia",
-                y="Empresa",
-                orientation="h",
-                title="Top 15 Empresas (Awarded) en Contratos Nacionales",
-                text="Frecuencia",
-                labels={"Frecuencia": "Frecuencia", "Empresa": "Empresa"}
-            )
-            fig.update_traces(marker_color=colors, textposition='outside')
-            altura = max(600, len(df_top15) * 40)
-            fig.update_layout(height=altura)
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.write("La columna 'awarded_firm_country_name' no se encuentra en los datos.")
+    # Gráfico de barras horizontal: Top 15 de awarded_firm_country_name
+    if "awarded_firm_country_name" in data_nacional.columns:
+        df_freq = data_nacional["awarded_firm_country_name"].value_counts().reset_index()
+        df_freq.columns = ["Empresa", "Frecuencia"]
+        df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15).sort_values("Frecuencia", ascending=True)
+        colors = ["#669bbc" if empresa == "Uruguay" else "#003049" for empresa in df_top15["Empresa"]]
+        fig = px.bar(
+            df_top15,
+            x="Frecuencia",
+            y="Empresa",
+            orientation="h",
+            title="Top 15 Empresas (Awarded) en Contratos Nacionales",
+            text="Frecuencia",
+            labels={"Frecuencia": "Frecuencia", "Empresa": "Empresa"}
+        )
+        fig.update_traces(marker_color=colors, textposition='outside')
+        altura = max(600, len(df_top15) * 40)
+        fig.update_layout(height=altura)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.write("La columna 'awarded_firm_country_name' no se encuentra en los datos.")
 
 # Página Uruguay en el Mundo
 def pagina_uruguay_en_el_mundo():
