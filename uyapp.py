@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt  # Se utiliza en otras secciones si es necesario
+import matplotlib.pyplot as plt  # Se usa en otras secciones si es necesario
 import plotly.express as px
 
 # -----------------------------
@@ -11,7 +11,7 @@ def load_data():
     # Lee el archivo Parquet; asegúrate de tener instalado pyarrow o fastparquet
     df = pd.read_parquet("uy_procurements.parquet")
     
-    # Normalización de las columnas 'awarded_firm_country_name' y 'operation_country_name'
+    # Normalizar las columnas 'awarded_firm_country_name' y 'operation_country_name'
     if "awarded_firm_country_name" in df.columns:
         df["awarded_firm_country_name"] = df["awarded_firm_country_name"].astype(str).str.strip().str.title()
     if "operation_country_name" in df.columns:
@@ -43,7 +43,7 @@ def pagina_tablas():
     st.title("Tablas")
     st.write("Visualización de los datos de la Base de Datos.")
     
-    # Filtros en el Sidebar para la pestaña Raw Data
+    # Filtros en el sidebar para Raw Data
     st.sidebar.markdown("### Filtros para Raw Data")
     
     # Filtro para 'contract_type'
@@ -52,7 +52,7 @@ def pagina_tablas():
         contract_type_filter = st.sidebar.multiselect("Selecciona Contract Type", contract_type_values)
     else:
         contract_type_filter = []
-        
+    
     # Filtro para 'status'
     if "status" in data.columns:
         status_values = sorted(data["status"].dropna().unique())
@@ -95,7 +95,7 @@ def pagina_tablas():
     else:
         awarded_firm_country_name_filter = []
     
-    # Aplicar filtros al DataFrame para la pestaña Raw Data
+    # Aplicar filtros al DataFrame
     filtered_data = data.copy()
     if contract_type_filter:
         filtered_data = filtered_data[filtered_data["contract_type"].isin(contract_type_filter)]
@@ -115,13 +115,11 @@ def pagina_tablas():
     # Crear pestañas: Raw Data y Agregada
     tabs = st.tabs(["Raw Data", "Agregada"])
     
-    # Pestaña Raw Data: muestra la base de datos filtrada
     with tabs[0]:
         st.header("Raw Data")
         st.write("Datos en crudo de la base de datos con los filtros aplicados:")
         st.dataframe(filtered_data)
     
-    # Pestaña Agregada: muestra varias tablas agregadas
     with tabs[1]:
         st.header("Agregada")
         st.write("Tablas agregadas y resúmenes:")
@@ -148,7 +146,6 @@ def pagina_tablas():
         
         # 3. Distribución Geográfica
         st.subheader("3. Distribución Geográfica")
-        # a) Por País de Operación
         if "operation_country_name" in filtered_data.columns and "contract_id" in filtered_data.columns:
             df_op = filtered_data.groupby("operation_country_name")["contract_id"].count().reset_index()
             df_op = df_op.rename(columns={"contract_id": "Cantidad"})
@@ -156,7 +153,6 @@ def pagina_tablas():
             st.dataframe(df_op)
         else:
             st.write("No se encontraron las columnas necesarias para País de Operación.")
-        # b) Por País de la Firma Adjudicataria
         if "awarded_firm_country_name" in filtered_data.columns and "contract_id" in filtered_data.columns:
             df_aw = filtered_data.groupby("awarded_firm_country_name")["contract_id"].count().reset_index()
             df_aw = df_aw.rename(columns={"contract_id": "Cantidad"})
@@ -235,13 +231,16 @@ def pagina_tablas():
 def pagina_visualizaciones():
     st.title("Visualizaciones")
     
-    # Agregar un filtro de contract_type en Visualizaciones (aplicado a toda la sección)
+    # Filtro global de contract_type para Visualizaciones
     data_vis = data.copy()
     if "contract_type" in data_vis.columns:
         ct_values = sorted(data_vis["contract_type"].dropna().unique())
         ct_filter = st.sidebar.multiselect("Filt. Contract Type", ct_values)
         if ct_filter:
             data_vis = data_vis[data_vis["contract_type"].isin(ct_filter)]
+    
+    # Definir el checkbox global para excluir registros (Aplicado a ambas subpáginas)
+    excluir_global = st.sidebar.checkbox("Excluir AWD=OP", value=True)
     
     # Crear dos pestañas: "Descriptivo" y "Tipo de Operación"
     tabs = st.tabs(["Descriptivo", "Tipo de Operación"])
@@ -251,21 +250,16 @@ def pagina_visualizaciones():
         st.header("Descriptivo")
         st.write("Frecuencia de Contratos Ganados por País")
         
-        # Checkbox en el sidebar para elegir si se aplica la lógica de exclusión (nombre corto)
-        aplicar_exclusion = st.sidebar.checkbox("Excluir AWD=OP", value=True)
-        if aplicar_exclusion and "operation_country_name" in data_vis.columns:
+        if excluir_global and "operation_country_name" in data_vis.columns:
             data_filtrado = data_vis[data_vis["awarded_firm_country_name"] != data_vis["operation_country_name"]]
         else:
             data_filtrado = data_vis.copy()
         
-        # Agrupar y contar la frecuencia de países en awarded_firm_country_name
         df_freq = data_filtrado["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        # Seleccionar el top 15 países
         df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15)
-        # Para que en el gráfico horizontal la barra de mayor frecuencia aparezca en la parte superior,
-        # se ordena de forma ascendente
         df_top15 = df_top15.sort_values("Frecuencia", ascending=True)
+        # Usamos la misma paleta que antes para barras en Descriptivo
         colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top15["Pais"]]
         fig = px.bar(
             df_top15,
@@ -287,45 +281,50 @@ def pagina_visualizaciones():
         st.write("Donut Chart por cada valor único de Operation Type, mostrando el % de AWD (Top 10)")
         if "operation_type_name" in data_vis.columns:
             op_types = data_vis["operation_type_name"].dropna().unique()
+            # Definir una paleta de colores para los que no son Uruguay en los donut charts
+            non_uruguay_palette = ["#F28E2B", "#4E79A7", "#59A14F", "#E15759", "#EDC948",
+                                   "#B07AA1", "#76B7B2", "#FF9DA7", "#9C755F", "#BAB0AC"]
             for op in op_types:
                 st.subheader(f"Operation Type: {op}")
-                # Filtrar data para este operation_type_name
                 df_op = data_vis[data_vis["operation_type_name"] == op]
-                # Agrupar por awarded_firm_country_name para obtener la distribución
+                # Aplicar la lógica de exclusión a nivel de operación
+                if excluir_global and "operation_country_name" in df_op.columns:
+                    df_op = df_op[df_op["awarded_firm_country_name"] != df_op["operation_country_name"]]
                 df_awd = df_op["awarded_firm_country_name"].value_counts().reset_index()
                 df_awd.columns = ["Pais", "Frecuencia"]
                 df_awd = df_awd.sort_values("Frecuencia", ascending=False)
-                
-                # --- Lógica para obtener Top 10 (si Uruguay está presente, siempre incluirlo) y agrupar el resto en "Otros" ---
+                # Lógica para obtener Top 10: incluir siempre Uruguay si existe
                 if "Uruguay" in df_awd["Pais"].values:
-                    # Extraer la fila de Uruguay
                     row_uruguay = df_awd[df_awd["Pais"] == "Uruguay"]
-                    # Extraer el resto (excluyendo Uruguay)
                     df_others = df_awd[df_awd["Pais"] != "Uruguay"]
-                    # Tomar los 9 primeros de los otros (si existen)
                     top_others = df_others.head(9)
-                    # Concatenar Uruguay y los otros seleccionados
                     selected = pd.concat([row_uruguay, top_others])
                 else:
-                    # Si Uruguay no está presente, tomar los 10 primeros
                     selected = df_awd.head(10)
-                
-                # Identificar los países que no entraron en la selección
+                # Agrupar el resto en "Otros"
                 selected_countries = set(selected["Pais"])
                 remaining = df_awd[~df_awd["Pais"].isin(selected_countries)]
                 if not remaining.empty:
-                    # Agrupar en "Otros"
                     otros_frequency = remaining["Frecuencia"].sum()
                     df_otros = pd.DataFrame({"Pais": ["Otros"], "Frecuencia": [otros_frequency]})
                     final_df = pd.concat([selected, df_otros], ignore_index=True)
                 else:
                     final_df = selected.copy()
-                # Recalcular el porcentaje
+                # Recalcular porcentaje (opcional para visualización)
                 total_final = final_df["Frecuencia"].sum()
                 final_df["Porcentaje"] = (final_df["Frecuencia"] / total_final * 100).round(2)
-                # --- Fin de la lógica ---
                 
-                # Crear gráfico donut (pie con hole)
+                # Asignar colores para el donut chart:
+                # Uruguay siempre se muestra en #669bbc.
+                # Los demás se asignan secuencialmente de la paleta non_uruguay_palette.
+                donut_colors = []
+                palette_index = 0
+                for pais in final_df["Pais"]:
+                    if pais == "Uruguay":
+                        donut_colors.append("#669bbc")
+                    else:
+                        donut_colors.append(non_uruguay_palette[palette_index % len(non_uruguay_palette)])
+                        palette_index += 1
                 fig_donut = px.pie(
                     final_df,
                     names="Pais",
@@ -333,13 +332,6 @@ def pagina_visualizaciones():
                     title=f"Distribución de AWD en OP: {op} (Top 10)",
                     hole=0.4
                 )
-                # Asignar colores: Uruguay siempre #669bbc, "Otros" y los demás #003049
-                donut_colors = []
-                for pais in final_df["Pais"]:
-                    if pais == "Uruguay":
-                        donut_colors.append("#669bbc")
-                    else:
-                        donut_colors.append("#003049")
                 fig_donut.update_traces(marker=dict(colors=donut_colors), textposition='outside')
                 st.plotly_chart(fig_donut, use_container_width=True)
         else:
