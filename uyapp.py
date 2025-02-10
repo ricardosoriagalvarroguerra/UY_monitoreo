@@ -68,12 +68,10 @@ def pagina_uruguay_nacional():
     
     st.write("Mostrando contratos en Uruguay (Operación Nacional).")
     
-    # Cálculo de métricas
     total_nacional = data_nacional.shape[0]
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Gráfico de montos con color "gray"
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -91,16 +89,15 @@ def pagina_uruguay_nacional():
     
     with col_left:
         st.markdown(f"""
-            <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px;
-                        border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; margin: 0; font-size: 20px; font-weight: bold;">Contratos</h3>
-                <h1 style="color: white; margin: 0; font-size: 28px;">{total_nacional}</h1>
+            <div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+                <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
+                <h1 style="color: white; font-size: 28px;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
         
         st.markdown(f"""
-            <div style="max-width: 200px; margin: 0;">
+            <div style="max-width: 200px;">
                 <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Locales Ganados</h3>
             </div>
             """, unsafe_allow_html=True)
@@ -232,16 +229,16 @@ def pagina_uruguay_en_el_mundo():
     
     with col_left:
         st.markdown(f"""
-            <div style="max-width: 150px; margin: 0; background-color: gray;
-                        padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; margin: 0; font-size: 20px; font-weight: bold;">Contratos</h3>
-                <h1 style="color: white; margin: 0; font-size: 28px;">{total_mundial}</h1>
+            <div style="max-width: 150px; background-color: gray; padding: 5px;
+                        border-radius: 5px; text-align: center; margin-bottom: 20px;">
+                <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
+                <h1 style="color: white; font-size: 28px;">{total_mundial}</h1>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
         
         st.markdown(f"""
-            <div style="max-width: 200px; margin: 0;">
+            <div style="max-width: 200px;">
                 <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Empresa Uruguaya</h3>
             </div>
             """, unsafe_allow_html=True)
@@ -303,24 +300,30 @@ def pagina_uruguay_en_el_mundo():
 # Nueva Página: Tabla Pivot (Resumen por País de la Operación)
 def tabla_pivot():
     st.title("Tabla Pivot")
-    st.write("""
-    **Tabla Resumen por País de la Operación:**  
-    La tabla muestra para cada país:
-    - Total de Contratos  
-    - Contratos Ganados por Empresas Uruguayas  
-    - % Contratos a Empresas UY  
-    - Monto Total Adjudicado (USD)  
-    - Monto a Uruguay (USD)  
-    - % Monto a Uruguay  
-    """)
-    required_cols = ['operation_country_name', 'idb_amount', 'awarded_firm_country_name']
-    for col in required_cols:
-        if col not in data.columns:
-            st.write(f"La columna {col} no se encontró en la data.")
-            return
-    
+    # Se agregaron filtros en la barra lateral
     df = data.copy()
-    # Agrupar por País de la Operación y calcular los indicadores
+    if "contract_type" in df.columns:
+        contract_types = sorted(df["contract_type"].dropna().unique())
+        selected_contract_type = st.sidebar.selectbox("Tipo de Contrato", ["Todos"] + contract_types)
+        if selected_contract_type != "Todos":
+            df = df[df["contract_type"] == selected_contract_type]
+    if "status" in df.columns:
+        statuses = sorted(df["status"].dropna().unique())
+        selected_status = st.sidebar.selectbox("Estado", ["Todos"] + statuses)
+        if selected_status != "Todos":
+            df = df[df["status"] == selected_status]
+    if "operation_type_name" in df.columns:
+        op_types = sorted(df["operation_type_name"].dropna().unique())
+        selected_op_type = st.sidebar.selectbox("Tipo de Operación", ["Todos"] + op_types)
+        if selected_op_type != "Todos":
+            df = df[df["operation_type_name"] == selected_op_type]
+    if "economic_sector_name" in df.columns:
+        sectors = sorted(df["economic_sector_name"].dropna().unique())
+        selected_sector = st.sidebar.selectbox("Sector Económico", ["Todos"] + sectors)
+        if selected_sector != "Todos":
+            df = df[df["economic_sector_name"] == selected_sector]
+    
+    # Agrupar por País de la Operación y calcular indicadores
     summary = df.groupby("operation_country_name").apply(lambda g: pd.Series({
          "Total Contratos": g.shape[0],
          "Contratos Ganados por Empresas Uruguayas": (g["awarded_firm_country_name"] == "Uruguay").sum(),
@@ -328,11 +331,9 @@ def tabla_pivot():
          "Monto a Uruguay (USD)": g.loc[g["awarded_firm_country_name"] == "Uruguay", "idb_amount"].sum()
     })).reset_index()
     
-    # Calcular porcentajes (sin formatear)
     summary["% Contratos a Empresas UY"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2)
     summary["% Monto a Uruguay"] = (summary["Monto a Uruguay (USD)"] / summary["Monto Total Adjudicado (USD)"] * 100).round(2)
     
-    # Calcular totales
     total_contratos = summary["Total Contratos"].sum()
     total_contratos_uy = summary["Contratos Ganados por Empresas Uruguayas"].sum()
     total_monto_total = summary["Monto Total Adjudicado (USD)"].sum()
@@ -340,19 +341,15 @@ def tabla_pivot():
     pct_contratos = round((total_contratos_uy / total_contratos * 100),2) if total_contratos > 0 else 0
     pct_monto = round((total_monto_uy / total_monto_total * 100),2) if total_monto_total > 0 else 0
     
-    # Formatear montos
     summary["Monto Total Adjudicado (USD)"] = summary["Monto Total Adjudicado (USD)"].apply(lambda x: f"${x:,.0f}")
     summary["Monto a Uruguay (USD)"] = summary["Monto a Uruguay (USD)"].apply(lambda x: f"${x:,.0f}")
-    # Formatear porcentajes
     summary["% Contratos a Empresas UY"] = summary["% Contratos a Empresas UY"].astype(str) + "%"
     summary["% Monto a Uruguay"] = summary["% Monto a Uruguay"].astype(str) + "%"
     
-    # Renombrar columna y reordenar
     summary = summary.rename(columns={"operation_country_name": "País de la Operación"})
     summary = summary[["País de la Operación", "Total Contratos", "Contratos Ganados por Empresas Uruguayas",
                        "% Contratos a Empresas UY", "Monto Total Adjudicado (USD)", "Monto a Uruguay (USD)", "% Monto a Uruguay"]]
     
-    # Agregar fila de totales
     total_row = pd.DataFrame({
          "País de la Operación": ["Total"],
          "Total Contratos": [total_contratos],
@@ -364,11 +361,9 @@ def tabla_pivot():
     })
     summary = pd.concat([summary, total_row], ignore_index=True)
     
-    # Preparar valores para la tabla
     header_values = list(summary.columns)
     cell_values = [summary[col].tolist() for col in summary.columns]
     
-    # Alternating row colors
     n_rows = len(summary)
     row_colors = ['#222222' if i % 2 == 0 else '#333333' for i in range(n_rows)]
     fill_colors = [row_colors] * len(header_values)
