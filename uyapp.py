@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt  # Se usa en otras secciones (Tablas) si es necesario
+import matplotlib.pyplot as plt  # Se utiliza en otras secciones si es necesario
 import plotly.express as px
 
 # -----------------------------
@@ -8,7 +8,7 @@ import plotly.express as px
 # -----------------------------
 @st.cache_data  # Cachea la carga para mejorar el rendimiento
 def load_data():
-    # Asegúrate de tener instalado pyarrow o fastparquet para leer archivos Parquet
+    # Lee el archivo Parquet; asegúrate de tener instalado pyarrow o fastparquet
     df = pd.read_parquet("uy_procurements.parquet")
     
     # Normalización de la columna 'awarded_firm_country_name'
@@ -24,7 +24,7 @@ data = load_data()
 # Página Principal
 # -----------------------------
 def pagina_principal():
-    st.title("Pagina Principal")
+    st.title("Página Principal")
     st.write("Bienvenido a la aplicación de **UY_PROCUREMENT**.")
     st.write("""
     Aquí encontrarás un resumen general de la información disponible.
@@ -40,7 +40,7 @@ def pagina_principal():
 def pagina_tablas():
     st.title("Tablas")
     st.write("Visualización de los datos de la Base de Datos.")
-
+    
     # -----------------------------
     # Filtros en el Sidebar para la pestaña Raw Data
     # -----------------------------
@@ -94,7 +94,7 @@ def pagina_tablas():
         awarded_firm_country_name_filter = st.sidebar.multiselect("Selecciona Awarded Firm Country Name", awarded_firm_country_name_values)
     else:
         awarded_firm_country_name_filter = []
-
+    
     # -----------------------------
     # Aplicar filtros al DataFrame para la pestaña Raw Data
     # -----------------------------
@@ -113,22 +113,24 @@ def pagina_tablas():
         filtered_data = filtered_data[filtered_data["procurement_type"].isin(procurement_type_filter)]
     if awarded_firm_country_name_filter and "awarded_firm_country_name" in filtered_data.columns:
         filtered_data = filtered_data[filtered_data["awarded_firm_country_name"].isin(awarded_firm_country_name_filter)]
-
+    
     # -----------------------------
     # Crear pestañas: Raw Data y Agregada
     # -----------------------------
     tabs = st.tabs(["Raw Data", "Agregada"])
     
+    # Pestaña Raw Data: Muestra la base de datos filtrada
     with tabs[0]:
         st.header("Raw Data")
         st.write("Datos en crudo de la base de datos con los filtros aplicados:")
         st.dataframe(filtered_data)
     
+    # Pestaña Agregada: Muestra varias tablas agregadas de forma ordenada
     with tabs[1]:
         st.header("Agregada")
         st.write("Tablas agregadas y resúmenes:")
-
-        # 1. Resumen por Tipo de Contrato
+        
+        # 1. Resumen por Tipo de Contrato (conteo y porcentaje)
         st.subheader("1. Resumen por Tipo de Contrato")
         if "contract_type" in filtered_data.columns and "contract_id" in filtered_data.columns:
             df_tipo = filtered_data.groupby("contract_type")["contract_id"].count().reset_index()
@@ -138,7 +140,7 @@ def pagina_tablas():
             st.dataframe(df_tipo)
         else:
             st.write("No se encontraron las columnas necesarias para este resumen.")
-
+        
         # 2. Resumen por Estado
         st.subheader("2. Resumen por Estado")
         if "status" in filtered_data.columns and "contract_id" in filtered_data.columns:
@@ -195,6 +197,7 @@ def pagina_tablas():
         # 6. Duración de Contratos
         st.subheader("6. Duración de Contratos")
         if "start_date" in filtered_data.columns and "stop_date" in filtered_data.columns:
+            # Convertir a datetime y calcular la duración en días
             filtered_data["start_date"] = pd.to_datetime(filtered_data["start_date"], errors="coerce")
             filtered_data["stop_date"] = pd.to_datetime(filtered_data["stop_date"], errors="coerce")
             filtered_data["duration_days"] = (filtered_data["stop_date"] - filtered_data["start_date"]).dt.days
@@ -211,7 +214,9 @@ def pagina_tablas():
         
         # 7. Resumen por Sector Económico y Tipo de Adquisición
         st.subheader("7. Resumen por Sector Económico y Tipo de Adquisición")
-        if "economic_sector_name" in filtered_data.columns and "procurement_type" in filtered_data.columns and "contract_id" in filtered_data.columns:
+        if ("economic_sector_name" in filtered_data.columns and 
+            "procurement_type" in filtered_data.columns and 
+            "contract_id" in filtered_data.columns):
             df_sector = filtered_data.groupby(["economic_sector_name", "procurement_type"])["contract_id"].count().reset_index()
             df_sector = df_sector.rename(columns={"contract_id": "Cantidad"})
             st.dataframe(df_sector)
@@ -220,7 +225,9 @@ def pagina_tablas():
         
         # 8. Tabla Combinada Multidimensional (Contract Type y Status)
         st.subheader("8. Tabla Combinada Multidimensional (Contract Type y Status)")
-        if "contract_type" in filtered_data.columns and "status" in filtered_data.columns and "contract_id" in filtered_data.columns:
+        if ("contract_type" in filtered_data.columns and 
+            "status" in filtered_data.columns and 
+            "contract_id" in filtered_data.columns):
             df_multi = filtered_data.groupby(["contract_type", "status"])["contract_id"].count().reset_index()
             df_multi = df_multi.rename(columns={"contract_id": "Cantidad"})
             st.dataframe(df_multi)
@@ -232,7 +239,7 @@ def pagina_tablas():
 # -----------------------------
 def pagina_visualizaciones():
     st.title("Visualizaciones")
-    tabs = st.tabs(["Descriptivo"])  # Se pueden agregar más pestañas según se requiera
+    tabs = st.tabs(["Descriptivo"])  # Se pueden agregar más pestañas si se requiere
     
     with tabs[0]:
         st.header("Descriptivo")
@@ -241,15 +248,23 @@ def pagina_visualizaciones():
         # Agrupar y contar la frecuencia de países en awarded_firm_country_name
         df_freq = data["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        # Ordenar para gráfico horizontal (los de menor frecuencia arriba)
+        # Ordenar para gráfico horizontal: de menor a mayor frecuencia
         df_freq = df_freq.sort_values("Frecuencia", ascending=True)
         
-        # Asignar colores: Uruguay con #669bbc, y los demás con #003049
-        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq["Pais"]]
+        # Agregar slider para seleccionar el rango de países a mostrar
+        max_idx = len(df_freq) - 1
+        range_start, range_end = st.slider(
+            "Seleccione el rango de países a mostrar",
+            0, max_idx, (0, min(max_idx, 10)), step=1
+        )
+        df_freq_subset = df_freq.iloc[range_start:range_end+1]
+        
+        # Asignar colores: si el país es "Uruguay" se usa #669bbc, para los demás #003049
+        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq_subset["Pais"]]
         
         # Crear gráfico de barras horizontal con Plotly
         fig = px.bar(
-            df_freq,
+            df_freq_subset,
             x="Frecuencia",
             y="Pais",
             orientation="h",
@@ -258,6 +273,11 @@ def pagina_visualizaciones():
         )
         # Actualizar colores de las barras
         fig.update_traces(marker_color=colors)
+        
+        # Calcular una altura dinámica: asignar 40 píxeles por cada barra, mínimo 600 píxeles
+        altura = max(600, len(df_freq_subset) * 40)
+        fig.update_layout(height=altura)
+        
         st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------
@@ -265,14 +285,16 @@ def pagina_visualizaciones():
 # -----------------------------
 def main():
     st.sidebar.title("Navegación")
-    pagina = st.sidebar.radio("Selecciona una página:", 
-                              ("Pagina Principal", "Tablas", "Visualizaciones"))
-
-    if pagina == "Pagina Principal":
+    opcion_pagina = st.sidebar.radio(
+        "Selecciona una página:",
+        ("Página Principal", "Tablas", "Visualizaciones")
+    )
+    
+    if opcion_pagina == "Página Principal":
         pagina_principal()
-    elif pagina == "Tablas":
+    elif opcion_pagina == "Tablas":
         pagina_tablas()
-    elif pagina == "Visualizaciones":
+    elif opcion_pagina == "Visualizaciones":
         pagina_visualizaciones()
 
 if __name__ == "__main__":
