@@ -267,30 +267,30 @@ def pagina_visualizaciones():
         # Agrupar y contar la frecuencia de países en awarded_firm_country_name
         df_freq = data_filtrado["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        # Seleccionar el top 10 países
-        df_top10 = df_freq.sort_values("Frecuencia", ascending=False).head(10)
+        # Seleccionar el top 15 países
+        df_top15 = df_freq.sort_values("Frecuencia", ascending=False).head(15)
         # Para que en el gráfico horizontal la barra de mayor frecuencia aparezca en la parte superior,
         # se ordena de forma ascendente
-        df_top10 = df_top10.sort_values("Frecuencia", ascending=True)
-        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top10["Pais"]]
+        df_top15 = df_top15.sort_values("Frecuencia", ascending=True)
+        colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_top15["Pais"]]
         fig = px.bar(
-            df_top10,
+            df_top15,
             x="Frecuencia",
             y="Pais",
             orientation="h",
-            title="Frecuencia de Contratos Ganados por País (Top 10)",
+            title="Frecuencia de Contratos Ganados por País (Top 15)",
             labels={"Frecuencia": "Frecuencia", "Pais": "País"},
             text="Frecuencia"
         )
         fig.update_traces(marker_color=colors, textposition='outside')
-        altura = max(600, len(df_top10) * 40)
+        altura = max(600, len(df_top15) * 40)
         fig.update_layout(height=altura)
         st.plotly_chart(fig, use_container_width=True)
     
     # --- Tab Tipo de Operación ---
     with tabs[1]:
         st.header("Tipo de Operación")
-        st.write("Donut Chart por cada valor único de Operation Type, mostrando el % de AWD")
+        st.write("Donut Chart por cada valor único de Operation Type, mostrando el % de AWD (Top 10)")
         if "operation_type_name" in data_vis.columns:
             op_types = data_vis["operation_type_name"].dropna().unique()
             for op in op_types:
@@ -300,14 +300,16 @@ def pagina_visualizaciones():
                 # Agrupar por awarded_firm_country_name para obtener la distribución
                 df_awd = df_op["awarded_firm_country_name"].value_counts().reset_index()
                 df_awd.columns = ["Pais", "Frecuencia"]
-                total_awd = df_awd["Frecuencia"].sum()
-                df_awd["Porcentaje"] = (df_awd["Frecuencia"] / total_awd * 100).round(2)
+                # Seleccionar el top 10 países para el donut chart
+                df_awd_top10 = df_awd.sort_values("Frecuencia", ascending=False).head(10)
+                total_awd = df_awd_top10["Frecuencia"].sum()
+                df_awd_top10["Porcentaje"] = (df_awd_top10["Frecuencia"] / total_awd * 100).round(2)
                 # Crear gráfico donut (pie con hole)
                 fig_donut = px.pie(
-                    df_awd,
+                    df_awd_top10,
                     names="Pais",
                     values="Frecuencia",
-                    title=f"Distribución de AWD en OP: {op}",
+                    title=f"Distribución de AWD en OP: {op} (Top 10)",
                     hole=0.4
                 )
                 st.plotly_chart(fig_donut, use_container_width=True)
