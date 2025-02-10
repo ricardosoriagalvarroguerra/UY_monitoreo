@@ -32,7 +32,7 @@ def pagina_principal():
 def pagina_uruguay_nacional():
     st.title("Uruguay Nacional")
     
-    # Filtrar la data para operaciones en Uruguay
+    # Filtrar contratos con operación en Uruguay
     data_nacional = data.copy()
     if "operation_country_name" in data_nacional.columns:
         data_nacional = data_nacional[data_nacional["operation_country_name"] == "Uruguay"]
@@ -44,41 +44,31 @@ def pagina_uruguay_nacional():
         year_range = st.sidebar.slider("Año de Contrato", min_value=min_year, max_value=max_year, value=(min_year, max_year), step=1)
         data_nacional = data_nacional[(data_nacional["contract_year"] >= year_range[0]) & (data_nacional["contract_year"] <= year_range[1])]
     
+    st.write("Mostrando contratos en Uruguay (Operación Nacional).")
+    
     # Calcular métricas para los Value Boxes
     total_nacional = data_nacional.shape[0]
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Mostrar los Value Boxes en dos columnas centradas
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Mostrar los Value Boxes en dos columnas
+    col1, col2 = st.columns(2)
     with col1:
-        st.write("")  # Espacio vacío
+        st.markdown(f"""
+        <div style="background-color: #0353a4; padding: 20px; border-radius: 10px; text-align: center;">
+            <h3 style="color: black; margin: 0;">Contratos en Uruguay</h3>
+            <h1 style="color: black; margin: 0;">{total_nacional}</h1>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-            <div style="background-color: #e0f7fa; padding: 20px; border-radius: 10px; text-align: center;">
-                <h3>Contratos en Uruguay</h3>
-                <h1 style="margin: 0;">{total_nacional}</h1>
-            </div>
-            """, unsafe_allow_html=True)
-    with col3:
-        st.write("")
-        
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        st.write("")
-    with col2:
-        st.markdown(f"""
-            <div style="background-color: #ffe0b2; padding: 20px; border-radius: 10px; text-align: center;">
-                <h3>% Contratos Locales</h3>
-                <h1 style="margin: 0;">{percentage_local:.1f}%</h1>
-            </div>
-            """, unsafe_allow_html=True)
-    with col3:
-        st.write("")
+        <div style="background-color: #0353a4; padding: 20px; border-radius: 10px; text-align: center;">
+            <h3 style="color: black; margin: 0;">% Contratos Locales</h3>
+            <h1 style="color: black; margin: 0;">{percentage_local:.1f}%</h1>
+        </div>
+        """, unsafe_allow_html=True)
     
-    st.write("Mostrando contratos en Uruguay (Operación Nacional).")
-    
-    # Gráfico de barras horizontal del top 15 de awarded_firm_country_name
+    # Gráfico de barras horizontal: Top 15 de awarded_firm_country_name
     if "awarded_firm_country_name" in data_nacional.columns:
         df_freq = data_nacional["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Empresa", "Frecuencia"]
@@ -104,7 +94,7 @@ def pagina_uruguay_nacional():
 def pagina_uruguay_en_el_mundo():
     st.title("Uruguay en el Mundo")
     data_mundial = data.copy()
-    # Filtrar para contratos donde la empresa es de Uruguay y la operación es en el exterior
+    # Filtrar contratos: empresas uruguayas que operan en el exterior
     if "awarded_firm_country_name" in data_mundial.columns:
         data_mundial = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]
     if "operation_country_name" in data_mundial.columns:
@@ -138,7 +128,7 @@ def pagina_uruguay_en_el_mundo():
                     df_op_count = df_op["operation_country_name"].value_counts().reset_index()
                     df_op_count.columns = ["País de Operación", "Frecuencia"]
                     df_op_count = df_op_count.sort_values("Frecuencia", ascending=False)
-                    # Lógica para Top 5: si "Uruguay" aparece (aunque en esta página no debería), incluirlo siempre y tomar 4 de los demás; de lo contrario, tomar 5.
+                    # Lógica para Top 5: si "Uruguay" aparece, incluirlo siempre y tomar 4 de los demás; de lo contrario, tomar 5.
                     if "Uruguay" in df_op_count["País de Operación"].values:
                         row_uruguay = df_op_count[df_op_count["País de Operación"] == "Uruguay"]
                         df_others = df_op_count[df_op_count["País de Operación"] != "Uruguay"]
