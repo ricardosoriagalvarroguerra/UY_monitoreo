@@ -64,8 +64,8 @@ def pagina_uruguay_nacional():
         )
         fig_bar.update_layout(
             height=250,  # Altura reducida
-            margin=dict(l=10, r=10, t=10, b=10),
-            xaxis=dict(showticklabels=False)  # Se ocultan las etiquetas del eje horizontal
+            margin=dict(l=10, r=10, t=10, b=10)
+            # Se mantienen las etiquetas y título del eje horizontal
         )
     else:
         fig_bar = None
@@ -149,7 +149,7 @@ def pagina_uruguay_nacional():
                     xanchor="center",
                     x=0.5
                 ),
-                xaxis=dict(showticklabels=False, title=""),  # Se ocultan las etiquetas del eje horizontal
+                xaxis_title="",  # Se puede dejar vacío o mantener el título deseado
                 yaxis_title="Número de Contratos",
                 height=220,  # Altura reducida
                 margin=dict(l=10, r=10, t=60, b=10)
