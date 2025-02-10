@@ -68,9 +68,9 @@ def pagina_uruguay_nacional():
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
-        # Value Box de Contratos (ancho reducido a 120px, fondo gris, letras blancas y título con fuente de 20px)
+        # Value Box de Contratos con ancho reducido (max-width de 90px), fondo gris, letras blancas y título con fuente de 20px
         st.markdown(f"""
-            <div style="max-width: 120px; margin: 0; background-color: gray; padding: 10px; border-radius: 5px;">
+            <div style="max-width: 90px; margin: 0; background-color: gray; padding: 10px; border-radius: 5px;">
                 <h3 style="color: white; margin: 0; margin-bottom: 0.5em; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
