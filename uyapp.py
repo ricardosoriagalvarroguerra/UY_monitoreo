@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # Se usa en otras secciones (Tablas) si es necesario
+import plotly.express as px
 
 # -----------------------------
 # Función para cargar y normalizar la base de datos
@@ -240,18 +241,24 @@ def pagina_visualizaciones():
         # Agrupar y contar la frecuencia de países en awarded_firm_country_name
         df_freq = data["awarded_firm_country_name"].value_counts().reset_index()
         df_freq.columns = ["Pais", "Frecuencia"]
-        df_freq = df_freq.sort_values("Frecuencia", ascending=False)
+        # Ordenar para gráfico horizontal (los de menor frecuencia arriba)
+        df_freq = df_freq.sort_values("Frecuencia", ascending=True)
         
         # Asignar colores: Uruguay con #669bbc, y los demás con #003049
         colors = ["#669bbc" if pais == "Uruguay" else "#003049" for pais in df_freq["Pais"]]
         
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(df_freq["Pais"], df_freq["Frecuencia"], color=colors)
-        ax.set_title("Frecuencia de Contratos Ganados por País")
-        ax.set_xlabel("País")
-        ax.set_ylabel("Frecuencia")
-        ax.tick_params(axis="x", rotation=45)
-        st.pyplot(fig)
+        # Crear gráfico de barras horizontal con Plotly
+        fig = px.bar(
+            df_freq,
+            x="Frecuencia",
+            y="Pais",
+            orientation="h",
+            title="Frecuencia de Contratos Ganados por País",
+            labels={"Frecuencia": "Frecuencia", "Pais": "País"}
+        )
+        # Actualizar colores de las barras
+        fig.update_traces(marker_color=colors)
+        st.plotly_chart(fig, use_container_width=True)
 
 # -----------------------------
 # Función principal de la aplicación
