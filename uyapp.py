@@ -26,7 +26,7 @@ def pagina_principal():
     
     - **Uruguay Nacional:** Contratos con operaciones en Uruguay.
     - **Uruguay en el Mundo:** Contratos en los que empresas uruguayas operan en el exterior.
-    - **Tabla Pivot:** Visualización innovadora de una tabla dinámica cruzando Año, Tipo de Contrato y País.
+    - **Tabla Pivot:** Tabla resumen por País de la Operación con indicadores clave.
     """)
 
 # Página Uruguay Nacional
@@ -97,20 +97,15 @@ def pagina_uruguay_nacional():
         st.markdown(f"""
             <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px;
                         border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">
-                    Contratos
-                </h3>
-                <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">
-                    {total_nacional}
-                </h1>
+                <h3 style="color: white; margin: 0; font-size: 20px; font-weight: bold;">Contratos</h3>
+                <h1 style="color: white; margin: 0; font-size: 28px;">{total_nacional}</h1>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
         
         st.markdown(f"""
             <div style="max-width: 200px; margin: 0;">
-                <h3 style="color: white; margin: 0 0 10px 0; font-size: 16px;
-                           line-height: 1; font-weight: bold;">% Locales Ganados</h3>
+                <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Locales Ganados</h3>
             </div>
             """, unsafe_allow_html=True)
         donut_data = pd.DataFrame({
@@ -137,7 +132,7 @@ def pagina_uruguay_nacional():
     with col_right:
         if "contract_year" in data_nacional.columns:
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"]\
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -155,31 +150,13 @@ def pagina_uruguay_nacional():
                 yaxis="y2"
             ))
             fig_freq.update_layout(
-                title=dict(
-                    text="Frecuencia de Contratos por Año",
-                    x=0.5,
-                    xanchor="center",
-                    pad=dict(b=40)
-                ),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.0,
-                    xanchor="center",
-                    x=0.5
-                ),
+                title=dict(text="Frecuencia de Contratos por Año", x=0.5, pad=dict(b=40)),
+                legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="center", x=0.5),
                 xaxis_title="",
                 height=220,
                 margin=dict(l=10, r=10, t=60, b=10),
-                yaxis=dict(
-                    title="Total Contratos",
-                    side="left"
-                ),
-                yaxis2=dict(
-                    title="Contratos Uruguay",
-                    overlaying="y",
-                    side="right"
-                )
+                yaxis=dict(title="Total Contratos", side="left"),
+                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right")
             )
             st.plotly_chart(fig_freq, use_container_width=True)
         else:
@@ -268,20 +245,15 @@ def pagina_uruguay_en_el_mundo():
         st.markdown(f"""
             <div style="max-width: 150px; margin: 0; background-color: gray;
                         padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
-                <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">
-                    Contratos
-                </h3>
-                <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">
-                    {total_mundial}
-                </h1>
+                <h3 style="color: white; margin: 0; font-size: 20px; font-weight: bold;">Contratos</h3>
+                <h1 style="color: white; margin: 0; font-size: 28px;">{total_mundial}</h1>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
         
         st.markdown(f"""
             <div style="max-width: 200px; margin: 0;">
-                <h3 style="color: white; margin: 0 0 10px 0; font-size: 16px;
-                           line-height: 1; font-weight: bold;">% Empresa Uruguaya</h3>
+                <h3 style="color: white; margin-bottom: 10px; font-size: 16px; font-weight: bold;">% Empresa Uruguaya</h3>
             </div>
             """, unsafe_allow_html=True)
         donut_data = pd.DataFrame({
@@ -308,7 +280,7 @@ def pagina_uruguay_en_el_mundo():
     with col_right:
         if "contract_year" in data_mundial.columns:
             df_total = data_mundial.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
+            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]\
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -326,31 +298,13 @@ def pagina_uruguay_en_el_mundo():
                 yaxis="y2"
             ))
             fig_freq.update_layout(
-                title=dict(
-                    text="Frecuencia de Contratos por Año",
-                    x=0.5,
-                    xanchor="center",
-                    pad=dict(b=40)
-                ),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.0,
-                    xanchor="center",
-                    x=0.5
-                ),
+                title=dict(text="Frecuencia de Contratos por Año", x=0.5, pad=dict(b=40)),
+                legend=dict(orientation="h", yanchor="bottom", y=1.0, xanchor="center", x=0.5),
                 xaxis_title="",
                 height=220,
                 margin=dict(l=10, r=10, t=60, b=10),
-                yaxis=dict(
-                    title="Total Contratos",
-                    side="left"
-                ),
-                yaxis2=dict(
-                    title="Contratos Uruguay",
-                    overlaying="y",
-                    side="right"
-                )
+                yaxis=dict(title="Total Contratos", side="left"),
+                yaxis2=dict(title="Contratos Uruguay", overlaying="y", side="right")
             )
             st.plotly_chart(fig_freq, use_container_width=True)
         else:
@@ -361,39 +315,49 @@ def pagina_uruguay_en_el_mundo():
         else:
             st.write("No se encontró la información necesaria para el gráfico de montos.")
 
-# Nueva Página: Tabla Pivot
+# Nueva Página: Tabla Pivot (Resumen por País de la Operación)
 def tabla_pivot():
     st.title("Tabla Pivot")
     st.write("""
-    **Tabla Dinámica (Pivot Table):**  
-    - **Filas:** Años (contract_year)  
-    - **Columnas:** Tipos de Contrato (contract_type)  
-    En cada celda se muestra el conteo de contratos ganados por Uruguay vs. otros países en el formato **"X vs Y"**, donde:  
-      - **X:** Contratos ganados por Uruguay  
-      - **Y:** Contratos ganados por otros países  
+    **Tabla Resumen por País de la Operación:**  
+    La tabla muestra para cada país:
+    - Total de Contratos  
+    - Contratos Ganados por Empresas Uruguayas  
+    - % Contratos Uruguayanos  
+    - Monto Total Adjudicado (USD)  
+    - Monto a Uruguay (USD)  
+    - % Monto a Uruguay  
     """)
-    required_cols = ['contract_year', 'contract_type', 'awarded_firm_country_name']
+    required_cols = ['operation_country_name', 'idb_amount', 'awarded_firm_country_name']
     for col in required_cols:
         if col not in data.columns:
             st.write(f"La columna {col} no se encontró en la data.")
             return
     
     df = data.copy()
-    # Convertir contract_year a entero para evitar decimales o separadores (por ejemplo, "2023" en lugar de "2,023")
-    df['contract_year'] = df['contract_year'].astype(int)
-    df['Gano'] = df['awarded_firm_country_name'].apply(lambda x: 'Uruguay' if x == "Uruguay" else 'Otros')
+    # Agrupar por País de la Operación
+    summary = df.groupby("operation_country_name").apply(lambda g: pd.Series({
+         "Total Contratos": g.shape[0],
+         "Contratos Ganados por Empresas Uruguayas": (g["awarded_firm_country_name"] == "Uruguay").sum(),
+         "Monto Total Adjudicado (USD)": g["idb_amount"].sum(),
+         "Monto a Uruguay (USD)": g.loc[g["awarded_firm_country_name"] == "Uruguay", "idb_amount"].sum()
+    })).reset_index()
     
-    group = df.groupby(['contract_year', 'contract_type', 'Gano']).size().unstack(fill_value=0)
-    if 'Uruguay' not in group.columns:
-        group['Uruguay'] = 0
-    if 'Otros' not in group.columns:
-        group['Otros'] = 0
-    group['Resultado'] = group['Uruguay'].astype(str) + " vs " + group['Otros'].astype(str)
-    pivot_df = group.reset_index().pivot(index='contract_year', columns='contract_type', values='Resultado')
+    summary["% Contratos Uruguayanos"] = (summary["Contratos Ganados por Empresas Uruguayas"] / summary["Total Contratos"] * 100).round(2).astype(str) + "%"
+    summary["% Monto a Uruguay"] = (summary["Monto a Uruguay (USD)"] / summary["Monto Total Adjudicado (USD)"] * 100).round(2).astype(str) + "%"
     
-    # Creamos la tabla con Plotly y definimos un formato oscuro
-    header_values = ["Año"] + list(pivot_df.columns)
-    cell_values = [pivot_df.index.tolist()] + [pivot_df[col].tolist() for col in pivot_df.columns]
+    # Formatear montos con separadores y sin decimales
+    summary["Monto Total Adjudicado (USD)"] = summary["Monto Total Adjudicado (USD)"].apply(lambda x: f"${x:,.0f}")
+    summary["Monto a Uruguay (USD)"] = summary["Monto a Uruguay (USD)"].apply(lambda x: f"${x:,.0f}")
+    
+    # Renombrar la columna y reordenar
+    summary = summary.rename(columns={"operation_country_name": "País de la Operación"})
+    summary = summary[["País de la Operación", "Total Contratos", "Contratos Ganados por Empresas Uruguayas",
+                       "% Contratos Uruguayanos", "Monto Total Adjudicado (USD)", "Monto a Uruguay (USD)", "% Monto a Uruguay"]]
+    
+    # Crear la tabla con Plotly y formato oscuro
+    header_values = list(summary.columns)
+    cell_values = [summary[col].tolist() for col in summary.columns]
     
     fig_table = go.Figure(data=[go.Table(
         header=dict(
@@ -407,8 +371,8 @@ def tabla_pivot():
             fill_color="#222222",
             font=dict(color="white", size=11),
             align="center"
-        ))
-    ])
+        )
+    )])
     fig_table.update_layout(
         margin=dict(l=10, r=10, t=10, b=10),
         paper_bgcolor="#000000",
