@@ -72,7 +72,7 @@ def pagina_uruguay_nacional():
     local_awarded = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_local = (local_awarded / total_nacional * 100) if total_nacional > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año
+    # Gráfico de montos: Suma de idb_amount por año con color "gray"
     if "contract_year" in data_nacional.columns and "idb_amount" in data_nacional.columns:
         df_bar = data_nacional.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -81,6 +81,8 @@ def pagina_uruguay_nacional():
             y="idb_amount",
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
+        # Se asigna el color "gray" para que coincida con el value box
+        fig_bar.update_traces(marker_color="gray")
         fig_bar.update_layout(
             height=250,
             margin=dict(l=10, r=10, t=10, b=10)
@@ -255,7 +257,7 @@ def pagina_uruguay_en_el_mundo():
     uruguayan_contracts = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"].shape[0]
     percentage_uruguayan = (uruguayan_contracts / total_mundial * 100) if total_mundial > 0 else 0
     
-    # Gráfico de montos: Suma de idb_amount por año (contratos fuera de Uruguay)
+    # Gráfico de montos: Suma de idb_amount por año (contratos fuera de Uruguay) con color "gray"
     if "contract_year" in data_mundial.columns and "idb_amount" in data_mundial.columns:
         df_bar = data_mundial.groupby("contract_year")["idb_amount"].sum().reset_index()
         fig_bar = px.bar(
@@ -264,7 +266,7 @@ def pagina_uruguay_en_el_mundo():
             y="idb_amount",
             labels={"contract_year": "Año", "idb_amount": "Monto IDB"}
         )
-        # Se asigna el mismo color que el value box ("gray")
+        # Se asigna el color "gray" para que coincida con el value box
         fig_bar.update_traces(marker_color="gray")
         fig_bar.update_layout(
             height=250,
