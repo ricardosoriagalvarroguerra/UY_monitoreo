@@ -89,7 +89,8 @@ def pagina_uruguay_nacional():
     
     with col_left:
         st.markdown(f"""
-            <div style="max-width: 150px; background-color: gray; padding: 5px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+            <div style="max-width: 150px; background-color: gray; padding: 5px;
+                        border-radius: 5px; text-align: center; margin-bottom: 20px;">
                 <h3 style="color: white; font-size: 20px; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; font-size: 28px;">{total_nacional}</h1>
             </div>
@@ -113,9 +114,13 @@ def pagina_uruguay_nacional():
             color_discrete_map={"Locales": "#669bbc", "No Locales": "#cccccc"}
         )
         donut_fig.update_traces(textinfo="none", hoverinfo="label+percent")
-        donut_fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=200, width=250,
-                                annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5,
-                                                  font_size=28, font_color="white", showarrow=False)])
+        donut_fig.update_layout(
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=200,
+            width=250,
+            annotations=[dict(text=f"{percentage_local:.1f}%", x=0.5, y=0.5,
+                              font_size=28, font_color="white", showarrow=False)]
+        )
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
@@ -300,7 +305,7 @@ def pagina_uruguay_en_el_mundo():
 # Nueva Página: Tabla Pivot (Resumen por País de la Operación)
 def tabla_pivot():
     st.title("Tabla Pivot")
-    # Se agregaron filtros en la barra lateral
+    # Se agregan filtros en la barra lateral
     df = data.copy()
     if "contract_type" in df.columns:
         contract_types = sorted(df["contract_type"].dropna().unique())
@@ -372,13 +377,13 @@ def tabla_pivot():
         header=dict(
             values=header_values,
             fill_color="#444444",
-            font=dict(color="white", size=12),
+            font=dict(color="white", size=16),  # Texto de encabezado más grande
             align="center"
         ),
         cells=dict(
             values=cell_values,
             fill_color=fill_colors,
-            font=dict(color="white", size=11),
+            font=dict(color="white", size=14),  # Texto de celdas más grande
             align="center"
         )
     )])
