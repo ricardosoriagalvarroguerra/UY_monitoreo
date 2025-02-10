@@ -71,7 +71,7 @@ def pagina_uruguay_nacional():
         # Value Box de Contratos con altura reducida:
         # Se disminuye el padding y se eliminan márgenes verticales para reducir su altura.
         st.markdown(f"""
-            <div style="max-width: 90px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px;">
+            <div style="max-width: 150px; margin: 0; background-color: gray; padding: 5px; border-radius: 5px;">
                 <h3 style="color: white; margin: 0; font-size: 20px; line-height: 1; font-weight: bold;">Contratos</h3>
                 <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1; font-weight: normal;">{total_nacional}</h1>
             </div>
