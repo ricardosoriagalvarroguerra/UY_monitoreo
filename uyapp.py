@@ -26,7 +26,7 @@ def pagina_principal():
     
     - **Uruguay Nacional:** Contratos con operaciones en Uruguay.
     - **Uruguay en el Mundo:** Contratos en los que empresas uruguayas operan en el exterior.
-    - **Tabla Pivot:** Visualización de una tabla dinámica cruzando Año, Tipo de Contrato y País.
+    - **Tabla Pivot:** Visualización innovadora de una tabla dinámica cruzando Año, Tipo de Contrato y País.
     """)
 
 # Página Uruguay Nacional
@@ -90,7 +90,7 @@ def pagina_uruguay_nacional():
     else:
         fig_bar = None
 
-    # Distribución en dos columnas: value boxes y gráficos
+    # Distribución en dos columnas: value boxes a la izquierda y gráficos a la derecha
     col_left, col_right = st.columns([0.3, 0.7])
     
     with col_left:
@@ -138,10 +138,10 @@ def pagina_uruguay_nacional():
         st.plotly_chart(donut_fig, use_container_width=False)
     
     with col_right:
-        # Gráfico combinado de frecuencia: barras y línea (con eje secundario a la derecha)
+        # Gráfico combinado de frecuencia: barras (total contratos) y línea (contratos ganados por Uruguay)
         if "contract_year" in data_nacional.columns:
             df_total = data_nacional.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"]\
+            df_local = data_nacional[data_nacional["awarded_firm_country_name"] == "Uruguay"] \
                         .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -244,7 +244,7 @@ def pagina_uruguay_en_el_mundo():
             else:
                 data_mundial = data_mundial[data_mundial["operation_country_name"] == selected_op_country]
     
-    # NUEVO TICKET BOX: Eliminar observaciones donde operación y adjudicatario sean iguales
+    # NUEVO TICKET BOX: Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales
     eliminar_iguales = st.sidebar.checkbox(
         "Eliminar observaciones donde 'Operación' y 'Adjudicatario' sean iguales", value=False)
     if eliminar_iguales:
@@ -325,7 +325,7 @@ def pagina_uruguay_en_el_mundo():
         # Gráfico de frecuencia: barras y línea (con eje secundario a la derecha)
         if "contract_year" in data_mundial.columns:
             df_total = data_mundial.groupby("contract_year").size().reset_index(name="Total Contratos")
-            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"]\
+            df_uruguayan = data_mundial[data_mundial["awarded_firm_country_name"] == "Uruguay"] \
                            .groupby("contract_year").size().reset_index(name="Contratos Uruguay")
             fig_freq = go.Figure()
             fig_freq.add_trace(go.Bar(
@@ -384,11 +384,11 @@ def tabla_pivot():
     st.title("Tabla Pivot")
     st.write("""
     **Tabla Dinámica (Pivot Table):**  
-    Filas: Años (contract_year)  
-    Columnas: Tipos de Contrato (contract_type)  
-    En cada celda se muestra la cantidad de contratos que ganó Uruguay vs. otros países, en el formato "X vs Y", donde:  
-      - **X**: Contratos ganados por Uruguay  
-      - **Y**: Contratos ganados por otros países  
+    - **Filas:** Años (contract_year)  
+    - **Columnas:** Tipos de Contrato (contract_type)  
+    En cada celda se muestra el conteo de contratos ganados por Uruguay vs. otros países en el formato **"X vs Y"**, donde:  
+      - **X:** Contratos ganados por Uruguay  
+      - **Y:** Contratos ganados por otros países  
     """)
     # Verificamos que existan las columnas necesarias
     required_cols = ['contract_year', 'contract_type', 'awarded_firm_country_name']
@@ -397,20 +397,22 @@ def tabla_pivot():
             st.write(f"La columna {col} no se encontró en la data.")
             return
     
-    # Creamos una copia y definimos una nueva columna "Gano"
     df = data.copy()
+    # Convertir contract_year a entero para evitar decimales o separadores
+    df['contract_year'] = df['contract_year'].astype(int)
+    # Definimos una nueva columna para clasificar el ganador
     df['Gano'] = df['awarded_firm_country_name'].apply(lambda x: 'Uruguay' if x == "Uruguay" else 'Otros')
     
-    # Agrupamos por Año, Tipo de Contrato y Gano, y contamos las observaciones
+    # Agrupamos por Año, Tipo de Contrato y por quién ganó, y contamos
     group = df.groupby(['contract_year', 'contract_type', 'Gano']).size().unstack(fill_value=0)
     
-    # Aseguramos que existan ambas categorías
+    # Aseguramos que existan ambas categorías en cada grupo
     if 'Uruguay' not in group.columns:
         group['Uruguay'] = 0
     if 'Otros' not in group.columns:
         group['Otros'] = 0
     
-    # Creamos una columna de resultado con el formato "X vs Y"
+    # Creamos una columna de resultado en el formato "X vs Y"
     group['Resultado'] = group['Uruguay'].astype(str) + " vs " + group['Otros'].astype(str)
     
     # Reiniciamos el índice y pivotamos para que:
@@ -418,7 +420,26 @@ def tabla_pivot():
     # - Las columnas sean los Tipos de Contrato (contract_type)
     pivot_df = group.reset_index().pivot(index='contract_year', columns='contract_type', values='Resultado')
     
-    st.dataframe(pivot_df)
+    # Para un look más innovador, usaremos un gráfico de tabla de Plotly
+    header_values = ["Año"] + list(pivot_df.columns)
+    cell_values = [pivot_df.index.tolist()] + [pivot_df[col].tolist() for col in pivot_df.columns]
+    
+    fig_table = go.Figure(data=[go.Table(
+        header=dict(
+            values=header_values,
+            fill_color='royalblue',
+            font=dict(color='white', size=12),
+            align='center'
+        ),
+        cells=dict(
+            values=cell_values,
+            fill_color='lightgrey',
+            font=dict(color='black', size=11),
+            align='center'
+        ))
+    ])
+    fig_table.update_layout(margin=dict(l=10, r=10, t=10, b=10))
+    st.plotly_chart(fig_table, use_container_width=True)
 
 # Función principal de navegación
 def main():
